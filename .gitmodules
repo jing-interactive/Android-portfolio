@@ -1,0 +1,3 @@
+[submodule "androidannotations"]
+	path = androidannotations
+	url = https://github.com/excilys/androidannotations.git
