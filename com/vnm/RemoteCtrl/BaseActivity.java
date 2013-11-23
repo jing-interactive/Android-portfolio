@@ -7,7 +7,6 @@ import java.util.Map;
 import oscP5.OscEventListener;
 import oscP5.OscMessage;
 import oscP5.OscP5;
-import oscP5.OscStatus;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -51,7 +50,7 @@ public abstract class BaseActivity extends Activity {
 	public abstract void setLayout(int layoutId);
 
 	protected String getAppAboutMe() {
-		return "智能移动控制平台。版权所有：科睿展示(2011-2013)";
+		return "移动控制平台。版权所有：VNM Studio(2013)";
 	}
 
 	protected int getClientCount() {
@@ -63,7 +62,7 @@ public abstract class BaseActivity extends Activity {
 		// TODO Auto-generated method stub
 	}
 
-	private static final String LOGTAG = "CRE";
+	private static final String LOGTAG = "VNM";
 
 	/** Logging functions to generate ADB logcat messages. */
 
@@ -116,18 +115,18 @@ public abstract class BaseActivity extends Activity {
 
 	String STORE_NAME = "Settings";
 
-	protected String remote_ips[];
-	final int listen_port = 7001;
-	protected final int client_port = 7000;
+	protected String mRemoteIps[];
+	final int kRemotePort = 7000;
+	final int kListenPort = 7001;
 
-	final int IdeaW = 1280;
-	final int IdeaH = 752;
+	final int kIdeaW = 1280;
+	final int kIdeaH = 752;
 	int DeviceW = 1280;
 	int DeviceH = 752;
 
-	protected AbsoluteLayout main_layout;
+	protected AbsoluteLayout mMainLayout;
 
-	Map<Integer, Integer> slider_map = new HashMap<Integer, Integer>();
+	Map<Integer, Integer> mSliderMap = new HashMap<Integer, Integer>();
 
 	final int MSG_BLOCK = 0;
 	final int MSG_UNBLOCK = 1;
@@ -139,10 +138,10 @@ public abstract class BaseActivity extends Activity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case MSG_UNBLOCK:
-				waiting_dialog.cancel();
+				mWaitingDialog.cancel();
 				break;
 			case MSG_BLOCK:
-				waiting_dialog.show();
+				mWaitingDialog.show();
 				break;
 			case MSG_MSGBOX:
 				Bundle bundle = msg.getData();
@@ -162,40 +161,45 @@ public abstract class BaseActivity extends Activity {
 	final Handler handler = new Handler() {
 		public void handleMessage(Message msg) {
 			if (msg.what == MSG_UNBLOCK)
-				waiting_dialog.cancel();
+				mWaitingDialog.cancel();
 			else if (msg.what == MSG_BLOCK)
-				waiting_dialog.show();
+				mWaitingDialog.show();
 		}
 	};
 
 	// idea coord -> device coord
+	// int toDx(int ideaX) {
+	// return ideaX * DeviceW / kIdeaW;
+	// }
+	//
+	// int toDy(int ideaY) {
+	// return ideaY * DeviceH / kIdeaH;
+	// }
+	// TODO:
 	int toDx(int ideaX) {
-		return ideaX * DeviceW / IdeaW;
+		return ideaX;
 	}
 
 	int toDy(int ideaY) {
-		return ideaY * DeviceH / IdeaH;
+		return ideaY;
 	}
 
 	public void sendCmd(String addr, int value) {
 		OscMessage m = new OscMessage(addr);
 		m.add(value);
 		// server.send(m);
-		for (String ip : remote_ips)
-			server.send(m, ip, client_port);
+		for (String ip : mRemoteIps)
+			server.send(m, ip, kRemotePort);
 	}
-	
+
 	/**
 	 * @param id
 	 */
-	protected void removeView(int id)
-	{
-		main_layout.removeView(findViewById(id));
+	protected void removeView(int id) {
+		mMainLayout.removeView(findViewById(id));
 	}
 
-	ProgressDialog waiting_dialog;
-
-	protected static final int NO_OSC_CMD = -1;
+	ProgressDialog mWaitingDialog;
 
 	protected void setButtonClicked(int img_id) {
 		View btn = findViewById(img_id);
@@ -221,13 +225,13 @@ public abstract class BaseActivity extends Activity {
 
 		ImageView imgView = new ImageView(this);
 		imgView.setImageBitmap(bmp);
-		main_layout.addView(imgView,
+		mMainLayout.addView(imgView,
 				new AbsoluteLayout.LayoutParams(w, h, x, y));
 
 		EditText input = new EditText(this);
 		input.setId(img);
 
-		main_layout.addView(input);
+		mMainLayout.addView(input);
 
 		input.getBackground().setAlpha(0);
 		input.setLayoutParams(new AbsoluteLayout.LayoutParams(w, h, x
@@ -255,7 +259,7 @@ public abstract class BaseActivity extends Activity {
 			final int new_layout, final OnClickListener bonus_listener) {
 		ImageButton btn = new ImageButton(this);
 		btn.setId(img_on);
-		main_layout.addView(btn);
+		mMainLayout.addView(btn);
 
 		if (w <= 0 || h <= 0) {
 			BitmapFactory.Options o = new BitmapFactory.Options();
@@ -302,10 +306,10 @@ public abstract class BaseActivity extends Activity {
 					setLayout(new_layout);
 				} else {
 					// #1 reset other buttons in the same group
-					int n = main_layout.getChildCount();
+					int n = mMainLayout.getChildCount();
 
 					for (int i = 0; i < n; i++) {
-						View child = main_layout.getChildAt(i);
+						View child = mMainLayout.getChildAt(i);
 						if (child.getId() != img_on) {
 							child.setSelected(false);
 							Integer tag = (Integer) child.getTag();
@@ -380,7 +384,7 @@ public abstract class BaseActivity extends Activity {
 		ImageView v = new ImageView(this);
 		v.setId(img);
 		v.setImageResource(img);
-		main_layout.addView(v);
+		mMainLayout.addView(v);
 
 		if (w <= 0 || h <= 0) {
 			BitmapFactory.Options o = new BitmapFactory.Options();
@@ -420,7 +424,7 @@ public abstract class BaseActivity extends Activity {
 			final boolean downside_thumb) {
 		SeekBar bar = new SeekBar(this);
 		bar.setId(slider_bg + x + y + w + h);
-		main_layout.addView(bar);
+		mMainLayout.addView(bar);
 
 		int thumb_w = 0;
 		int thumb_h = 0;
@@ -437,7 +441,7 @@ public abstract class BaseActivity extends Activity {
 
 		x = toDx(x);
 		if (downside_thumb)
-			y = toDy(y - (Math.max(h / 2 ,thumb_h / 2)));
+			y = toDy(y - (Math.max(h / 2, thumb_h / 2)));
 		else
 			y = toDy(y - (h / 2 + thumb_h / 2));
 		w = toDx(w);
@@ -455,8 +459,8 @@ public abstract class BaseActivity extends Activity {
 		bar.setMax(max);
 
 		final Integer key = new Integer(bar.getId());
-		if (slider_map.containsKey(key)) {
-			int v = slider_map.get(key).intValue();
+		if (mSliderMap.containsKey(key)) {
+			int v = mSliderMap.get(key).intValue();
 			if (remember_position)
 				bar.setProgress(v);
 		} else {
@@ -490,7 +494,7 @@ public abstract class BaseActivity extends Activity {
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				if (fromUser) {
-					slider_map.put(key, progress);
+					mSliderMap.put(key, progress);
 					if (!forward)
 						progress = 100 - progress;
 					sendCmd(addr, progress);
@@ -597,7 +601,7 @@ public abstract class BaseActivity extends Activity {
 
 		// Set an EditText view to get user input
 		final EditText input = new EditText(this);
-		input.setText(remote_ips[idx]);
+		input.setText(mRemoteIps[idx]);
 		input.setInputType(InputType.TYPE_CLASS_PHONE);
 
 		alert.setView(input);
@@ -605,7 +609,7 @@ public abstract class BaseActivity extends Activity {
 		alert.setPositiveButton("确认", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString();
-				remote_ips[idx] = value;
+				mRemoteIps[idx] = value;
 				// MsgBox("远程IP设置为 " + value, true);
 				SharedPreferences settings = getSharedPreferences(STORE_NAME,
 						MODE_PRIVATE);
@@ -627,16 +631,15 @@ public abstract class BaseActivity extends Activity {
 		// http://androidsnippets.com/prompt-user-input-with-an-alertdialog
 	}
 
-   	@Override
+	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-        
-        // fix potential udp connection bug
+
+		// fix potential udp connection bug
 		server.stop();
 	}
 
-    
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -660,29 +663,26 @@ public abstract class BaseActivity extends Activity {
 		if (DeviceW == 1280)
 			DeviceH = 752;
 
-		waiting_dialog = new ProgressDialog(this);
+		mWaitingDialog = new ProgressDialog(this);
 		{
-			waiting_dialog.setTitle("等待远程计算机响应");
-			waiting_dialog.setMessage("请稍候");
-			waiting_dialog.setIndeterminate(true);
-			waiting_dialog.setCancelable(false);
+			mWaitingDialog.setTitle("等待远程计算机响应");
+			mWaitingDialog.setMessage("请稍候");
+			mWaitingDialog.setIndeterminate(true);
+			mWaitingDialog.setCancelable(false);
 		}
 
-		remote_ips = new String[getClientCount()];
+		mRemoteIps = new String[getClientCount()];
 
 		// preference
 		SharedPreferences settings = getSharedPreferences(STORE_NAME,
 				MODE_PRIVATE);
 		for (int i = 0; i < getClientCount(); i++)
-			remote_ips[i] = settings.getString("client_ip" + i, "192.168.1.10"
+			mRemoteIps[i] = settings.getString("client_ip" + i, "192.168.1.10"
 					+ i);
-		MsgBox("远程IP为 " + remote_ips[0] + ",可在选项菜单中修改", true);
+		MsgBox("远程IP为 " + mRemoteIps[0] + ",可在选项菜单中修改", true);
 
-		server = new OscP5(this, listen_port);
+		server = new OscP5(this, kListenPort);
 		server.addListener(new OscEventListener() {
-
-			public void oscStatus(OscStatus theStatus) {
-			}
 
 			public void oscEvent(OscMessage m) {
 				LOGI(" addr: " + m.addrPattern());
@@ -697,9 +697,9 @@ public abstract class BaseActivity extends Activity {
 
 				if (block == 1) {
 					handler.sendEmptyMessage(MSG_BLOCK);
-                    // remove delayed messages
+					// remove delayed messages
 					handler.removeMessages(MSG_UNBLOCK);
-                    // send the delayed message
+					// send the delayed message
 					final int MS_TIMEOUT = 7000;
 					handler.sendEmptyMessageDelayed(MSG_UNBLOCK, MS_TIMEOUT);
 				} else if (block == 0) {

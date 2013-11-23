@@ -16,14 +16,14 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 	}
 
 	public void setLayout(int layoutId) {
-		main_layout = new AbsoluteLayout(this);
-		super.setContentView(main_layout);
+		mMainLayout = new AbsoluteLayout(this);
+		super.setContentView(mMainLayout);
 
 		int osc_id = 1;
 
 		switch (layoutId) {
 		case LayoutID.Scene: {// Ê×Ò³
-			main_layout.setBackgroundResource(R.drawable.bg_intro);
+			mMainLayout.setBackgroundResource(R.drawable.bg_intro);
 
 //			int x0 = 388;
 //			int dx = 353;

@@ -1,7 +1,7 @@
 /**
  * An OSC (Open Sound Control) library for processing.
  *
- * (c) 2004-2011
+ * ##copyright##
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,20 +18,15 @@
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA  02111-1307  USA
  * 
- * @author		Andreas Schlegel http://www.sojamo.de/libraries/oscP5
- * @modified	12/19/2011
- * @version		0.9.8
+ * @author		##author##
+ * @modified	##date##
+ * @version		##version##
  */
 
 package oscP5;
 
-/**
- * 
- * @invisible
- */
 public interface OscEventListener {
 
-	public void oscEvent(OscMessage theMessage);
+	public void oscEvent( OscMessage theMessage );
 
-	public void oscStatus(OscStatus theStatus);
 }

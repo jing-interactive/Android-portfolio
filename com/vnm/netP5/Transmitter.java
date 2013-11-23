@@ -1,7 +1,7 @@
 /**
  * A network library for processing which supports UDP, TCP and Multicast.
  *
- * (c) 2004-2011
+ * ##copyright##
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,50 +18,26 @@
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA  02111-1307  USA
  * 
- * @author		Andreas Schlegel http://www.sojamo.de/libraries/oscP5
- * @modified	12/19/2011
- * @version		0.9.8
+ * @author		##author##
+ * @modified	##date##
+ * @version		##version##
  */
 
 package netP5;
 
-/**
- * @invisible
- */
-public class TcpPacket {
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Collection;
 
-  private final TcpClient _myTcpClient;
+public interface Transmitter {
 
-  private final StringBuffer _myStringBuffer;
+	public boolean send( byte[] theContent );
 
-  private final byte[] _myData;
+	public boolean send( byte[] theContent , Collection< InetSocketAddress > theAddress );
 
-  public TcpPacket(final TcpClient theTcpClient,
-                   final StringBuffer theBuffer,
-                   final byte[] theBytes) {
-    _myStringBuffer = theBuffer;
-    _myTcpClient = theTcpClient;
-    _myData = theBytes;
-  }
+	public boolean send( byte[] theContent , String theHost , int thePort );
 
+	public boolean send( byte[] theContent , SocketAddress ... theAddress );
 
-  public TcpClient getTcpConnection() {
-    return _myTcpClient;
-  }
-
-
-  public String getString() {
-    return _myStringBuffer.toString();
-  }
-
-
-  public StringBuffer getStringBuffer() {
-    return _myStringBuffer;
-  }
-
-
-  public byte[] getData() {
-    return _myData;
-  }
-
+	public boolean close( );
 }

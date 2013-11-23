@@ -1,7 +1,7 @@
 /**
  * An OSC (Open Sound Control) library for processing.
  *
- * (c) 2004-2011
+ * ##copyright##
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,126 +18,101 @@
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA  02111-1307  USA
  * 
- * @author		Andreas Schlegel http://www.sojamo.de/libraries/oscP5
- * @modified	12/19/2011
- * @version		0.9.8
+ * @author		##author##
+ * @modified	##date##
+ * @version		##version##
  */
 
 package oscP5;
 
-import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.nio.channels.SocketChannel;
+import java.util.Map;
+
 import netP5.Bytes;
 import netP5.NetAddress;
-import netP5.TcpPacket;
-import netP5.TcpClient;
 
-/**
- * @invisible
- */
 public abstract class OscPacket extends OscPatcher {
 
-    protected static final int MESSAGE = 0;
+	protected static final int SYSTEM = 1;
 
+	protected static final int MESSAGE = 2;
 
-    protected static final int BUNDLE = 1;
+	protected static final int BUNDLE = 3;
 
+	protected InetAddress inetAddress;
 
-    protected InetAddress inetAddress;
+	protected String hostAddress;
 
+	protected int _myType;
 
-    protected String hostAddress;
+	protected Object _myRef = null;
 
+	protected int port = 0;
 
-    protected int _myType;
+	protected int localPort = 0;
 
+	static protected OscPacket parse( Map m ) {
 
-    protected TcpClient _myTcpClient = null;
+		int n = evaluatePacket( bytes( m.get( "data" ) ) );
 
+		if ( n == MESSAGE ) {
+			return new OscMessage( m );
+		} else if ( n == BUNDLE ) {
+			return new OscBundle( m );
+		} else if ( n == SYSTEM ) {
+			/* TODO applies to tcp client operations for a tcp server including connect, disconnect,
+			 * etc. for now will be ignored. */
+			return null;
+		}
+		return new OscMessage( "error" );
 
-    protected int port;
+	}
 
-    /**
-     * @invisible
-     */
-    public OscPacket() {}
+	private static int evaluatePacket( byte[] theBytes ) {
+		return ( ( theBytes.length > 0 ) ? ( Bytes.areEqual( OscBundle.BUNDLE_AS_BYTES , Bytes.copy( theBytes , 0 , OscBundle.BUNDLE_AS_BYTES.length ) ) ? BUNDLE : MESSAGE ) : SYSTEM );
+	}
 
+	/**
+	 * when in TCP mode, tcpConnection() returns the instance of the TcpClient that has sent the
+	 * OscMessage.
+	 */
+	public SocketChannel tcpConnection( ) {
+		if ( _myRef instanceof SocketChannel ) {
+			return ( SocketChannel ) _myRef;
+		}
+		return null;
+	}
 
-    protected static OscPacket parse(DatagramPacket theDatagramPacket) {
-        if (evaluatePacket(theDatagramPacket.getData()) == MESSAGE) {
-            return new OscMessage(theDatagramPacket);
-        } else {
-            return new OscBundle(theDatagramPacket);
-        }
-    }
+	public Object remoteChannel( ) {
+		return _myRef;
+	}
 
+	protected boolean isValid( ) {
+		return isValid;
+	}
 
-    protected static OscPacket parse(TcpPacket theTcpPacket) {
-        if (evaluatePacket(theTcpPacket.getData()) == MESSAGE) {
-            return new OscMessage(theTcpPacket);
-        } else {
-            return new OscBundle(theTcpPacket);
-        }
-    }
+	protected int type( ) {
+		return _myType;
+	}
 
+	public int port( ) {
+		return port;
+	}
 
-    private static int evaluatePacket(byte[] theBytes) {
-        return (Bytes.areEqual(OscBundle.BUNDLE_AS_BYTES, Bytes.copy(theBytes, 0, OscBundle.BUNDLE_AS_BYTES.length))) ? BUNDLE
-                : MESSAGE;
-    }
+	public NetAddress netAddress( ) {
+		return new NetAddress( inetAddress , port );
+	}
 
+	public String getAddress( ) {
+		return hostAddress;
+	}
 
-    /**
-     * when in TCP mode, tcpConnection() returns the instance of the TcpClient that has sent the OscMessage.
-     * @return TcpClient
-     */
-    public TcpClient tcpConnection() {
-        return _myTcpClient;
-    }
+	public abstract byte[] getBytes( );
 
-
-    protected boolean isValid() {
-        return isValid;
-    }
-
-
-    protected int type() {
-        return _myType;
-    }
-
-
-    public int port() {
-        return port;
-    }
-
-
-    public NetAddress netAddress() {
-        return new NetAddress(inetAddress, port);
-    }
-
-
-    /**
-     * @deprecated
-     * @invisible
-     * @return NetAddress
-     */
-    public NetAddress netaddress() {
-        return new NetAddress(inetAddress, port);
-    }
-
-
-    /**
-     * @return String
-     */
-    public String address() {
-        return hostAddress;
-    }
-
-
-    /**
-     * @return byte[]
-     * @invisible
-     */
-    public abstract byte[] getBytes();
+	@Deprecated
+	public NetAddress netaddress( ) {
+		return new NetAddress( inetAddress , port );
+	}
 
 }
