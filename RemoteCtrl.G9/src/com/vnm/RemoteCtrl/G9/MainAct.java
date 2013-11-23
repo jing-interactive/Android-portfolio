@@ -7,7 +7,6 @@ import java.util.StringTokenizer;
 
 import org.xmlpull.v1.XmlPullParser;
 
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Xml;
 import android.widget.AbsoluteLayout;
@@ -30,32 +29,46 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		super.setContentView(mMainLayout);
 
 		int osc_id = 1;
-		
+
 		switch (layoutId) {
 		case LayoutID.kSchedule: {
 			mMainLayout.setBackgroundResource(R.drawable.bg);
-			
+
 			for (Layer layer : mScheduleLayers) {
 				// http://stackoverflow.com/questions/13351003/find-drawable-by-string
-				int resId = getResources().getIdentifier(layer.name, "drawable", getPackageName());
-				
+				int resId = getResources().getIdentifier(layer.name,
+						"drawable", getPackageName());
+
 				try {
-					addButton("/", -1, layer.rect.left, layer.rect.top, resId, resId);					
+					if (resId == R.drawable.schedule_button) {
+						addButton("/", -1, layer.x, layer.y, resId, R.drawable.schedule);
+					} else {
+						addButton("/", -1, layer.x, layer.y, resId, resId);
+					}
 				} catch (Exception e) {
 					LOGE(layer.name);
 				}
 			}
+			break;
+		}
+		case LayoutID.kProgramme: {
+			mMainLayout.setBackgroundResource(R.drawable.bg);
 
-			// int x0 = 388;
-			// int dx = 353;
-			// int y0 = 328;
-			// String tag = "/scene";
+			for (Layer layer : mProgrammeLayers) {
+				// http://stackoverflow.com/questions/13351003/find-drawable-by-string
+				int resId = getResources().getIdentifier(layer.name,
+						"drawable", getPackageName());
 
-			// addButton(tag, osc_id++, x0, y0, R.drawable.dj1,
-			// R.drawable.dj1b);// 欢迎画面
-			// addButton(tag, osc_id++, x0 += dx, y0, R.drawable.dj3,
-			// R.drawable.dj3b, LayoutID.Menu);// 交互系统
-
+				try {
+					if (resId == R.drawable.programme_button) {
+						addButton("/", -1, layer.x, layer.y, resId, R.drawable.programme);
+					} else {
+						addButton("/", -1, layer.x, layer.y, resId, resId);
+					}
+				} catch (Exception e) {
+					LOGE(layer.name);
+				}
+			}
 			break;
 		}
 
@@ -66,7 +79,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 	class Layer {
 		String name = "";
-		Rect rect = new Rect();
+		int x, y, w, h;
 	}
 
 	private ArrayList<Layer> parseXML(final String xmlName) {
@@ -87,14 +100,17 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 					name = parser.getName();
 					if (name.equals("layer")) {
 						Layer aLayer = new Layer();
-						aLayer.name = parser.getAttributeValue(null, "name").toLowerCase(Locale.ENGLISH);
-						String line = parser.getAttributeValue(null, "position");
+						aLayer.name = parser.getAttributeValue(null, "name")
+								.toLowerCase(Locale.ENGLISH);
+						String line = parser
+								.getAttributeValue(null, "position");
 						String[] sublines = line.split(", ");
-						int x = Integer.parseInt(sublines[0]);
-						int y = Integer.parseInt(sublines[1]);
-						int w = Integer.parseInt(parser.getAttributeValue(null, "layerwidth"));
-						int h = Integer.parseInt(parser.getAttributeValue(null, "layerheight"));
-						aLayer.rect.set(x, y, x + w, y + h);
+						aLayer.x = Integer.parseInt(sublines[0]);
+						aLayer.y = Integer.parseInt(sublines[1]);
+						aLayer.w = Integer.parseInt(parser.getAttributeValue(
+								null, "layerwidth"));
+						aLayer.h = Integer.parseInt(parser.getAttributeValue(
+								null, "layerheight"));
 						layers.add(aLayer);
 					}
 					break;
@@ -107,7 +123,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 		return layers;
 	}
-	
 
 	/** Called when the activity is first created. */
 	@Override
@@ -119,7 +134,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		mProgrammeLayers = parseXML("PROGRAMME.xml");
 		mPreviewLayers = parseXML("PREVIEW.xml");
 
-		setLayout(LayoutID.kSchedule);
+		setLayout(LayoutID.kProgramme);
 	}
 
 	private ArrayList<Layer> mScheduleLayers;
