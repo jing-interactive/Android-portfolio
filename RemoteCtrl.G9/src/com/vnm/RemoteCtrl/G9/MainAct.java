@@ -41,9 +41,13 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 				try {
 					if (resId == R.drawable.schedule_button) {
-						addButton("/", -1, layer.x, layer.y, resId, R.drawable.schedule);
+						addButton("/", -1, layer.x, layer.y, resId,
+								R.drawable.schedule, LayoutID.kSchedule);
+					} else if (resId == R.drawable.programme_button) {
+						addButton("/", -1, layer.x, layer.y, resId,
+								R.drawable.programme, LayoutID.kProgramme);
 					} else {
-						addButton("/", -1, layer.x, layer.y, resId, resId);
+						addImage(layer.x, layer.y, resId);
 					}
 				} catch (Exception e) {
 					LOGE(layer.name);
@@ -55,15 +59,20 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 			mMainLayout.setBackgroundResource(R.drawable.bg);
 
 			for (Layer layer : mProgrammeLayers) {
-				// http://stackoverflow.com/questions/13351003/find-drawable-by-string
 				int resId = getResources().getIdentifier(layer.name,
 						"drawable", getPackageName());
 
 				try {
-					if (resId == R.drawable.programme_button) {
-						addButton("/", -1, layer.x, layer.y, resId, R.drawable.programme);
+					if (resId == R.drawable.schedule) {
+						addButton("/", -1, layer.x, layer.y,
+								R.drawable.schedule_button,
+								R.drawable.schedule, LayoutID.kSchedule);
+					} else if (resId == R.drawable.programme) {
+						addButton("/", -1, layer.x, layer.y,
+								R.drawable.programme_button,
+								R.drawable.programme, LayoutID.kProgramme);
 					} else {
-						addButton("/", -1, layer.x, layer.y, resId, resId);
+						addImage(layer.x, layer.y, resId);
 					}
 				} catch (Exception e) {
 					LOGE(layer.name);
@@ -134,7 +143,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		mProgrammeLayers = parseXML("PROGRAMME.xml");
 		mPreviewLayers = parseXML("PREVIEW.xml");
 
-		setLayout(LayoutID.kProgramme);
+		setLayout(LayoutID.kSchedule);
 	}
 
 	private ArrayList<Layer> mScheduleLayers;
