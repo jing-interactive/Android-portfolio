@@ -1,14 +1,20 @@
 package com.vnm.RemoteCtrl.G9;
 
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
-import java.util.StringTokenizer;
+import java.util.Map;
+import java.util.Set;
 
 import org.xmlpull.v1.XmlPullParser;
 
 import android.os.Bundle;
 import android.util.Xml;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.AbsoluteLayout;
 
 @SuppressWarnings("deprecation")
@@ -28,27 +34,37 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		mMainLayout = new AbsoluteLayout(this);
 		super.setContentView(mMainLayout);
 
-		int osc_id = 1;
-
 		switch (layoutId) {
 		case LayoutID.kSchedule: {
 			mMainLayout.setBackgroundResource(R.drawable.bg);
+			mMainLayout.setOnTouchListener(new OnTouchListener() {
+				public boolean onTouch(View v, MotionEvent event) {
+					LOGW(event.toString());
+					return true;
+				}
+			});
 
-			for (Layer layer : mScheduleLayers) {
-				// http://stackoverflow.com/questions/13351003/find-drawable-by-string
-				int resId = getResources().getIdentifier(layer.name,
-						"drawable", getPackageName());
+			for (HashMap.Entry<String, Layer> entry : mScheduleLayers
+					.entrySet()) {
+
+				String name = entry.getKey();
+				if (mInvisibleLayers.contains(name)) {
+					continue;
+				}
+
+				Layer layer = entry.getValue();
+				if (name.contains(kTimeSlotPrefix)) {
+					int slot = Integer.parseInt(name.substring(
+							kTimeSlotPrefix.length(), name.length()));
+					mTimeSlots[slot - 1] = new TimeSlot(layer);
+				} else if (name.contains(kThemeSlotPrefix)) {
+					int slot = Integer.parseInt(name.substring(
+							kThemeSlotPrefix.length(), name.length()));
+					mThemeSlots[slot - 1] = new ThemeSlot(layer);
+				}
 
 				try {
-					if (resId == R.drawable.schedule_button) {
-						addButton("/", -1, layer.x, layer.y, resId,
-								R.drawable.schedule, LayoutID.kSchedule);
-					} else if (resId == R.drawable.programme_button) {
-						addButton("/", -1, layer.x, layer.y, resId,
-								R.drawable.programme, LayoutID.kProgramme);
-					} else {
-						addImage(layer.x, layer.y, resId);
-					}
+					addImage(layer.x, layer.y, layer.resId);
 				} catch (Exception e) {
 					LOGE(layer.name);
 				}
@@ -58,26 +74,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		case LayoutID.kProgramme: {
 			mMainLayout.setBackgroundResource(R.drawable.bg);
 
-			for (Layer layer : mProgrammeLayers) {
-				int resId = getResources().getIdentifier(layer.name,
-						"drawable", getPackageName());
-
-				try {
-					if (resId == R.drawable.schedule) {
-						addButton("/", -1, layer.x, layer.y,
-								R.drawable.schedule_button,
-								R.drawable.schedule, LayoutID.kSchedule);
-					} else if (resId == R.drawable.programme) {
-						addButton("/", -1, layer.x, layer.y,
-								R.drawable.programme_button,
-								R.drawable.programme, LayoutID.kProgramme);
-					} else {
-						addImage(layer.x, layer.y, resId);
-					}
-				} catch (Exception e) {
-					LOGE(layer.name);
-				}
-			}
 			break;
 		}
 
@@ -88,11 +84,13 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 	class Layer {
 		String name = "";
+		String imageName = "";
+		int resId = -1;
 		int x, y, w, h;
 	}
 
-	private ArrayList<Layer> parseXML(final String xmlName) {
-		ArrayList<Layer> layers = null;
+	private Map<String, Layer> parseXML(final String xmlName) {
+		Map<String, Layer> layers = null;
 		try {
 			InputStream in = getAssets().open(xmlName);
 			XmlPullParser parser = Xml.newPullParser();
@@ -103,7 +101,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 				String name = null;
 				switch (eventType) {
 				case XmlPullParser.START_DOCUMENT:
-					layers = new ArrayList<Layer>();
+					layers = new HashMap<String, Layer>();
 					break;
 				case XmlPullParser.START_TAG:
 					name = parser.getName();
@@ -120,7 +118,12 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 								null, "layerwidth"));
 						aLayer.h = Integer.parseInt(parser.getAttributeValue(
 								null, "layerheight"));
-						layers.add(aLayer);
+
+						// http://stackoverflow.com/questions/13351003/find-drawable-by-string
+						aLayer.resId = getResources().getIdentifier(
+								aLayer.name, "drawable", getPackageName());
+
+						layers.put(aLayer.name, aLayer);
 					}
 					break;
 				}
@@ -139,6 +142,9 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 		super.onCreate(savedInstanceState);
 
+		String[] invisibleArray = { "bg", "bg_copy" };
+		mInvisibleLayers = new HashSet<String>(Arrays.asList(invisibleArray));
+
 		mScheduleLayers = parseXML("SCHEDULE.xml");
 		mProgrammeLayers = parseXML("PROGRAMME.xml");
 		mPreviewLayers = parseXML("PREVIEW.xml");
@@ -146,7 +152,41 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		setLayout(LayoutID.kSchedule);
 	}
 
-	private ArrayList<Layer> mScheduleLayers;
-	private ArrayList<Layer> mProgrammeLayers;
-	private ArrayList<Layer> mPreviewLayers;
+	private Map<String, Layer> mScheduleLayers;
+	private Map<String, Layer> mProgrammeLayers;
+	private Map<String, Layer> mPreviewLayers;
+
+	private Set<String> mInvisibleLayers;
+
+	//
+	final int kTimeSlotCount = 16;
+
+	class TimeSlot {
+		public TimeSlot(Layer aLayer) {
+			layer = aLayer;
+		}
+
+		Layer layer;
+		int themeId;
+	}
+
+	private TimeSlot[] mTimeSlots = new TimeSlot[kTimeSlotCount];
+	final String kTimeSlotPrefix = "fade_color_";
+
+	//
+	final int kThemeSlotCount = 6;
+
+	class ThemeSlot {
+		public ThemeSlot(Layer aLayer) {
+			layer = aLayer;
+		}
+
+		boolean isInteractive;
+		boolean isRandomAnimation;
+		Layer layer;
+		int id;
+	}
+
+	private ThemeSlot[] mThemeSlots = new ThemeSlot[kThemeSlotCount];
+	final String kThemeSlotPrefix = "color_button";
 }
