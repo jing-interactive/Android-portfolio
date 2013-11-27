@@ -363,7 +363,6 @@ public abstract class BaseActivity extends Activity {
 				if (tag.booleanValue()) {
 					v.setBackgroundResource(img2);
 					sendCmd(addr, osc1);
-
 				} else {
 					v.setBackgroundResource(img1);
 					sendCmd(addr, osc2);
@@ -511,29 +510,6 @@ public abstract class BaseActivity extends Activity {
 		return bar;
 	}
 
-	// public void oscEvent(OscMessage m) {
-	// LOGI(" addr: " + m.addrPattern());
-	// int block = -1;
-	// if (m.checkAddrPattern("/block")) {
-	// block = m.get(0).intValue();
-	// } else if (m.checkAddrPattern("/deactivate")) {
-	// block = 1;
-	// } else if (m.checkAddrPattern("/activate")) {
-	// block = 0;
-	// }
-	//
-	// if (block == 1) {
-	// handler.sendEmptyMessage(MSG_BLOCK);
-	// final int MS_TIMEOUT = 7000;
-	// handler.sendEmptyMessageDelayed(MSG_UNBLOCK, MS_TIMEOUT);
-	// } else if (block == 0) {
-	// // remove delayed messages
-	// handler.removeMessages(MSG_UNBLOCK);
-	// // send the message NOW
-	// handler.sendEmptyMessage(MSG_UNBLOCK);
-	// }
-	// }
-
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
@@ -633,7 +609,6 @@ public abstract class BaseActivity extends Activity {
 
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
 		super.onDestroy();
 
 		// fix potential udp connection bug
@@ -685,13 +660,13 @@ public abstract class BaseActivity extends Activity {
 		server.addListener(new OscEventListener() {
 
 			public void oscEvent(OscMessage m) {
-				LOGI(" addr: " + m.addrPattern());
+				LOGI(" addr: " + m.getAddress());
 				int block = -1;
-				if (m.checkAddrPattern("/block")) {
+				if (m.checkAddress("/block")) {
 					block = m.get(0).intValue();
-				} else if (m.checkAddrPattern("/deactivate")) {
+				} else if (m.checkAddress("/deactivate")) {
 					block = 1;
-				} else if (m.checkAddrPattern("/activate")) {
+				} else if (m.checkAddress("/activate")) {
 					block = 0;
 				}
 
