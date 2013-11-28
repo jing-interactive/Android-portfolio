@@ -9,9 +9,16 @@ schedule
 	layout
 
 programme
-	layout
-	slider
+	interaction on-off
+	loop / + / -
+	temprature / text
+	reset
+	random on-off
+	preview
+	mov 01 ~ 10
+	interaction
+	update
 
 preview
-	layout
+	cancel
 	gif
