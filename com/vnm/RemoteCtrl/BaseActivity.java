@@ -240,6 +240,11 @@ public abstract class BaseActivity extends Activity {
 		return input;
 	}
 
+	// 无 osc，但可自定义消息
+	protected ImageButton addButton(int x, int y, final int img_on, final OnClickListener bonus_listener) {
+		return addButton("", -1, x, y, -1, -1, img_on, 0, -1, bonus_listener);
+	}
+
 	// 增加按钮，无场景切换
 	protected ImageButton addButton(final String addr, final int osc_value,
 			int x, int y, final int img_on, final int img) {
