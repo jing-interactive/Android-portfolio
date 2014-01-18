@@ -1,4 +1,4 @@
-package com.vnm.RemoteCtrl.G9;
+package com.vnm.G9;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.AbsoluteLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 
 @SuppressWarnings("deprecation")
@@ -44,7 +43,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		super.setContentView(mMainLayout);
 
 		mCurrentLayout = layoutId;
-		
+
 		switch (layoutId) {
 		case LayoutID.kSchedule: {
 			createSchduleLayout();
@@ -74,7 +73,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 			break;
 		}
 		}
-		
+
 		loadConfig();
 	}
 
