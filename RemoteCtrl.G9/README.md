@@ -4,8 +4,6 @@ RemoteCtrl.G9
 osc
 save/load
 	schedule_time_slot
-schedule
-	layout
 
 programme
 	interaction on-off

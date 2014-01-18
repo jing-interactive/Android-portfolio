@@ -17,6 +17,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.ColorDrawable;
@@ -50,7 +51,7 @@ public abstract class BaseActivity extends Activity {
 	public abstract void setLayout(int layoutId);
 
 	protected String getAppAboutMe() {
-		return "移动控制平台。版权所有：VNM Studio(2013)";
+		return "Mobile Control. Copyright：V & M Interactive (2013 - 2014)";
 	}
 
 	protected int getClientCount() {
@@ -156,17 +157,6 @@ public abstract class BaseActivity extends Activity {
 		}
 	};
 
-	// Define the Handler that receives messages from the thread and update the
-	// progress
-	final Handler handler = new Handler() {
-		public void handleMessage(Message msg) {
-			if (msg.what == MSG_UNBLOCK)
-				mWaitingDialog.cancel();
-			else if (msg.what == MSG_BLOCK)
-				mWaitingDialog.show();
-		}
-	};
-
 	// idea coord -> device coord
 	// int toDx(int ideaX) {
 	// return ideaX * DeviceW / kIdeaW;
@@ -241,7 +231,8 @@ public abstract class BaseActivity extends Activity {
 	}
 
 	// 无 osc，但可自定义消息
-	protected ImageButton addButton(int x, int y, final int img_on, final OnClickListener bonus_listener) {
+	protected ImageButton addButton(int x, int y, final int img_on,
+			final OnClickListener bonus_listener) {
 		return addButton("", -1, x, y, -1, -1, img_on, 0, -1, bonus_listener);
 	}
 
@@ -380,6 +371,9 @@ public abstract class BaseActivity extends Activity {
 	}
 
 	// 增加图片
+	public ImageView addImage(Rect rect, final int img) {
+		return addImage(rect.left, rect.top, rect.width(), rect.height(), img);
+	}	
 	public ImageView addImage(int x, int y, final int img) {
 		return addImage(x, y, -1, -1, img);
 	}
@@ -630,8 +624,8 @@ public abstract class BaseActivity extends Activity {
 		// hide status bar
 		getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 		// always light on
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+//		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+//				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
@@ -676,17 +670,18 @@ public abstract class BaseActivity extends Activity {
 				}
 
 				if (block == 1) {
-					handler.sendEmptyMessage(MSG_BLOCK);
+					default_handler.sendEmptyMessage(MSG_BLOCK);
 					// remove delayed messages
-					handler.removeMessages(MSG_UNBLOCK);
+					default_handler.removeMessages(MSG_UNBLOCK);
 					// send the delayed message
 					final int MS_TIMEOUT = 7000;
-					handler.sendEmptyMessageDelayed(MSG_UNBLOCK, MS_TIMEOUT);
+					default_handler.sendEmptyMessageDelayed(MSG_UNBLOCK,
+							MS_TIMEOUT);
 				} else if (block == 0) {
 					// remove delayed messages
-					handler.removeMessages(MSG_UNBLOCK);
+					default_handler.removeMessages(MSG_UNBLOCK);
 					// send the message NOW
-					handler.sendEmptyMessage(MSG_UNBLOCK);
+					default_handler.sendEmptyMessage(MSG_UNBLOCK);
 				}
 			}
 		});
