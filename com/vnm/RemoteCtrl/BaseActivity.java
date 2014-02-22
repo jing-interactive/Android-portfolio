@@ -26,6 +26,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -86,6 +87,10 @@ public abstract class BaseActivity extends Activity {
 	final static Drawable transparent_drawable = new ColorDrawable(
 			Color.TRANSPARENT);
 
+	protected int getDrawableByString(String name) {
+		return getResources().getIdentifier(name, "drawable", getPackageName());
+	}
+
 	protected void sendExceptionToVinjn(Exception e, String mail_content) {
 		String str_trace = e.getMessage() + "\n\n";
 		StackTraceElement[] traces = e.getStackTrace();
@@ -112,13 +117,13 @@ public abstract class BaseActivity extends Activity {
 	}
 
 	//
-	OscP5 server;
+	protected OscP5 mOscServer;
 
 	String STORE_NAME = "Settings";
 
 	protected String mRemoteIps[];
-	final int kRemotePort = 7000;
-	final int kListenPort = 7001;
+	final int kRemotePort = 3333;
+	final int kListenPort = 4444;
 
 	final int kIdeaW = 1280;
 	final int kIdeaH = 752;
@@ -177,14 +182,14 @@ public abstract class BaseActivity extends Activity {
 	public void sendCmd(String addr, int value) {
 		OscMessage m = new OscMessage(addr);
 		m.add(value);
-		// server.send(m);
 		for (String ip : mRemoteIps)
-			server.send(m, ip, kRemotePort);
+			mOscServer.send(m, ip, kRemotePort);
 	}
 
-	/**
-	 * @param id
-	 */
+	protected void removeView(View view) {
+		mMainLayout.removeView(view);
+	}
+	
 	protected void removeView(int id) {
 		mMainLayout.removeView(findViewById(id));
 	}
@@ -231,9 +236,9 @@ public abstract class BaseActivity extends Activity {
 	}
 
 	// 无 osc，但可自定义消息
-	protected ImageButton addButton(int x, int y, final int img_on,
+	protected ImageButton addButton(int x, int y, final int img_on, final int img,
 			final OnClickListener bonus_listener) {
-		return addButton("", -1, x, y, -1, -1, img_on, 0, -1, bonus_listener);
+		return addButton("", -1, x, y, -1, -1, img_on, img, -1, bonus_listener);
 	}
 
 	// 增加按钮，无场景切换
@@ -283,6 +288,9 @@ public abstract class BaseActivity extends Activity {
 				case MotionEvent.ACTION_MOVE:
 					v.setBackgroundResource(img_on);
 					break;
+				case MotionEvent.ACTION_UP:
+					if (osc_value >= 0)
+						sendCmd(addr, osc_value);
 				default:
 					if (!v.isSelected())
 						v.setBackgroundResource(img);
@@ -292,62 +300,46 @@ public abstract class BaseActivity extends Activity {
 			}
 		});
 
-		btn.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				if (osc_value >= 0)
-					sendCmd(addr, osc_value);
-
-				// #3 test for main buttons
-				if (new_layout >= 0) {
-					setLayout(new_layout);
-				} else {
-					// #1 reset other buttons in the same group
-					int n = mMainLayout.getChildCount();
-
-					for (int i = 0; i < n; i++) {
-						View child = mMainLayout.getChildAt(i);
-						if (child.getId() != img_on) {
-							child.setSelected(false);
-							Integer tag = (Integer) child.getTag();
-							if (tag != null)
-								child.setBackgroundResource(tag.intValue());
-						}
-					}
-
-					// #2 set current button
-					v.setSelected(true);
-					v.setBackgroundResource(img_on);
-					v.bringToFront();
-				}
-
-				if (bonus_listener != null)
-					bonus_listener.onClick(v);
-			}
-		});
+//		btn.setOnClickListener(new OnClickListener() {
+//			public void onClick(View v) {
+//				if (osc_value >= 0)
+//					sendCmd(addr, osc_value);
+//
+//				// #3 test for main buttons
+//				if (new_layout >= 0) {
+//					setLayout(new_layout);
+//				} else {
+//					// #1 reset other buttons in the same group
+//					int n = mMainLayout.getChildCount();
+//
+//					for (int i = 0; i < n; i++) {
+//						View child = mMainLayout.getChildAt(i);
+//						if (child.getId() != img_on) {
+//							child.setSelected(false);
+//							Integer tag = (Integer) child.getTag();
+//							if (tag != null)
+//								child.setBackgroundResource(tag.intValue());
+//						}
+//					}
+//
+//					// #2 set current button
+//					v.setSelected(true);
+//					v.setBackgroundResource(img_on);
+//					v.bringToFront();
+//				}
+//
+//				if (bonus_listener != null)
+//					bonus_listener.onClick(v);
+//			}
+//		});
 		return btn;
 	}
 
 	protected ImageButton addToggleButton(final String addr, final int osc1,
-			final int osc2, int x, int y, final int img1, final int img2) {
+			final int osc2, int x, int y, final int img1, final int img2, final OnClickListener bonus_listener) {
 		ImageButton btn = addButton(addr, 0, x, y, img1, img2);
 
 		btn.setOnTouchListener(null);
-
-		// btn.setOnTouchListener(new OnTouchListener() {
-		// public boolean onTouch(View v, MotionEvent event) {
-		// switch (event.getAction()) {
-		// case MotionEvent.ACTION_DOWN:
-		// case MotionEvent.ACTION_MOVE:
-		// v.setBackgroundResource(img_on);
-		// break;
-		// default:
-		// if (!v.isSelected())
-		// v.setBackgroundResource(img);
-		// break;
-		// }
-		// return false;
-		// }
-		// });
 
 		btn.setTag(new Boolean(true));
 		btn.setBackgroundResource(img1);
@@ -365,6 +357,10 @@ public abstract class BaseActivity extends Activity {
 				}
 				v.setTag(new Boolean(!tag.booleanValue()));
 				v.bringToFront();
+				
+				if (bonus_listener != null){
+					bonus_listener.onClick(v);
+				}
 			}
 		});
 		return btn;
@@ -611,7 +607,7 @@ public abstract class BaseActivity extends Activity {
 		super.onDestroy();
 
 		// fix potential udp connection bug
-		server.stop();
+		mOscServer.dispose();
 	}
 
 	/** Called when the activity is first created. */
@@ -628,6 +624,10 @@ public abstract class BaseActivity extends Activity {
 //				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+//		http://stackoverflow.com/questions/6343166/android-os-networkonmainthreadexception
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy); 
 
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -655,8 +655,8 @@ public abstract class BaseActivity extends Activity {
 					+ i);
 		MsgBox("远程IP为 " + mRemoteIps[0] + ",可在选项菜单中修改", true);
 
-		server = new OscP5(this, kListenPort);
-		server.addListener(new OscEventListener() {
+		mOscServer = new OscP5(this, kListenPort);
+		mOscServer.addListener(new OscEventListener() {
 
 			public void oscEvent(OscMessage m) {
 				LOGI(" addr: " + m.getAddress());

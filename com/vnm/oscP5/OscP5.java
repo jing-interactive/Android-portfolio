@@ -231,7 +231,7 @@ public class OscP5 implements Observer {
 					parent = theObject;
 				}
 			} catch ( Exception e ) {
-				e.printStackTrace( );
+//				e.printStackTrace( );
 			}
 
 			try {
@@ -247,7 +247,7 @@ public class OscP5 implements Observer {
 			}
 
 		} catch ( NullPointerException e ) {
-			e.printStackTrace( );
+//			e.printStackTrace( );
 		}
 	}
 

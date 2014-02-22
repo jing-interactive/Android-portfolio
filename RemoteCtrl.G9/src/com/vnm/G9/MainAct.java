@@ -2,12 +2,11 @@ package com.vnm.G9;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 import org.xmlpull.v1.XmlPullParser;
+
+import oscP5.OscMessage;
 
 import android.annotation.TargetApi;
 import android.content.SharedPreferences;
@@ -25,6 +24,10 @@ import android.widget.ImageView;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 @SuppressWarnings("deprecation")
 public class MainAct extends RemoteCtrl.BaseActivity {
+
+	protected String getAppAboutMe() {
+		return "G9 Mobile Control.";
+	}
 
 	class LayoutID {
 		static final int kSchedule = 0;
@@ -47,11 +50,15 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 		switch (layoutId) {
 		case LayoutID.kSchedule: {
-			createSchduleLayout();
+			createScheduleLayout();
 			break;
 		}
 		case LayoutID.kProgramme: {
-			createProgrammeLayout();
+			try {
+				createProgrammeLayout();
+			} catch (Exception e) {
+				LOGE("<createProgrammeLayout> " + e.toString());
+			}
 			break;
 		}
 
@@ -61,56 +68,24 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 		mMainLayout.setBackgroundResource(R.drawable.bg);
 
-		setButtonPair(mScheduleBtn, mScheduleOffBtn, LayoutID.kSchedule,
-				mProgrammeBtn, mProgrammeOffBtn, LayoutID.kProgramme);
+		// setButtonPair(mScheduleBtn, mScheduleSceneBtn, LayoutID.kSchedule,
+		// mProgrammeBtn, mProgrammeSceneBtn, LayoutID.kProgramme);
 
-		switch (layoutId) {
-		case LayoutID.kSchedule: {
-			mScheduleOffBtn.setVisibility(View.INVISIBLE);
-			break;
-		}
-		case LayoutID.kProgramme: {
-			mProgrammeOffBtn.setVisibility(View.INVISIBLE);
-			break;
-		}
-		}
+		// mScheduleSceneBtn.setVisibility(View.INVISIBLE);
+		// mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
+
+		// switch (layoutId) {
+		// case LayoutID.kSchedule: {
+		// mScheduleSceneBtn.setVisibility(View.INVISIBLE);
+		// break;
+		// }
+		// case LayoutID.kProgramme: {
+		// mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
+		// break;
+		// }
+		// }
 
 		loadConfig();
-	}
-
-	private void setButtonPair(final ImageView btn1, final ImageView btn1_off,
-			final int scene1, final ImageView btn2, final ImageView btn2_off,
-			final int scene2) {
-
-		btn1.setVisibility(View.INVISIBLE);
-		btn2.setVisibility(View.INVISIBLE);
-
-		btn1_off.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				if (scene1 >= 0) {
-					saveConfig();
-					setLayout(scene1);
-				}
-				btn1_off.setVisibility(View.INVISIBLE);
-				btn2_off.setVisibility(View.VISIBLE);
-
-				btn1.setVisibility(View.VISIBLE);
-				btn2.setVisibility(View.INVISIBLE);
-			}
-		});
-		btn2_off.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				if (scene2 >= 0) {
-					saveConfig();
-					setLayout(scene2);
-				}
-				btn2_off.setVisibility(View.INVISIBLE);
-				btn1_off.setVisibility(View.VISIBLE);
-
-				btn2.setVisibility(View.VISIBLE);
-				btn1.setVisibility(View.INVISIBLE);
-			}
-		});
 	}
 
 	private void createProgrammeLayout() {
@@ -118,30 +93,38 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		for (Widget widget : mProgrammeWidgets) {
 
 			String name = widget.name;
-			if (mInvisibleWidgets.contains(name)) {
+
+			if (applyTopButtons(widget, name)) {
 				continue;
 			}
 
-			try {
-				widget.view = addImage(widget.savedRect, widget.savedResId);
-			} catch (Exception e) {
-				LOGE(widget.name);
-			}
-			if (name.contains(kHourSlotPrefix)) {
+			int idOn = getDrawableByString(name + "_on");
+
+			if (name.contains(kMovieSlotPrefix)) {
 				int slot = Integer.parseInt(name.substring(
-						kHourSlotPrefix.length(), name.length()));
-				mHourSlots[slot - 1] = new ScheduleSlot(widget);
-			} else if (name.contains(kProgrammeSlotPrefix)) {
-				int slot = Integer.parseInt(name.substring(
-						kProgrammeSlotPrefix.length(), name.length()));
-				mProgrammeSlots[slot - 1] = new ScheduleSlot(widget);
-				mProgrammeSlots[slot - 1].widget.userId = slot - 1;
-			} else if (name.equals("delet_button_hl")) {
-				mProgrammeSlots[kProgrammeSlotCount - 1] = new ScheduleSlot(
-						widget);
-				mProgrammeSlots[kProgrammeSlotCount - 1].widget.userId = kProgrammeSlotCount - 1;
+						kMovieSlotPrefix.length(), name.length())) - 1;
+				widget.view = addButton("/debug/movie", slot,
+						widget.xmlRect.left, widget.xmlRect.top, idOn,
+						widget.xmlResId);
+				mMovieSlots[slot] = new MovieSlot(widget);
+				mMovieSlots[slot].widget.userId = slot;
+			} else if (name.equals("preview")) {
+				widget.view = addButton(widget.xmlRect.left,
+						widget.xmlRect.top, idOn, widget.xmlResId, null);
+			} else if (name.equals("reset")) {
+				widget.view = addButton(widget.xmlRect.left,
+						widget.xmlRect.top, idOn, widget.xmlResId, null);
+			} else if (name.equals("update")) {
+				widget.view = addButton(widget.xmlRect.left,
+						widget.xmlRect.top, idOn, widget.xmlResId, null);
+			} else if (name.equals("loop_plus")) {
+				widget.view = addButton(widget.xmlRect.left,
+						widget.xmlRect.top, idOn, widget.xmlResId, null);
+			} else if (name.equals("loop_minus")) {
+				widget.view = addButton(widget.xmlRect.left,
+						widget.xmlRect.top, idOn, widget.xmlResId, null);
 			} else {
-				applyTopButtons(widget, name);
+				widget.view = addImage(widget.xmlRect, widget.xmlResId);
 			}
 		}
 	}
@@ -150,30 +133,51 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 	 * @param widget
 	 * @param name
 	 */
-	private void applyTopButtons(Widget widget, String name) {
-		if (name.equals("schedule")) {
-			mScheduleBtn = widget.view;
-		} else if (name.equals("programme")) {
-			mProgrammeBtn = widget.view;
-		}
+	private boolean applyTopButtons(Widget widget, String name) {
+		// if (name.equals("schedule")) {
+		// mScheduleBtn = widget.view;
+		// } else if (name.equals("programme")) {
+		// mProgrammeBtn = widget.view;
+		// }
 		if (name.equals("schedule_off")) {
-			mScheduleOffBtn = widget.view;
+			mScheduleSceneBtn = widget.view = addToggleButton("", -1, -1,
+					widget.xmlRect.left, widget.xmlRect.top,
+					R.drawable.schedule_off, R.drawable.schedule_on,
+					new View.OnClickListener() {
+						public void onClick(View v) {
+							saveConfig();
+							setLayout(LayoutID.kSchedule);
+						}
+					});
+			return true;
 		} else if (name.equals("programme_off")) {
-			mProgrammeOffBtn = widget.view;
+			mProgrammeSceneBtn = widget.view = addToggleButton("", -1, -1,
+					widget.xmlRect.left, widget.xmlRect.top,
+					R.drawable.programme_off, R.drawable.programme_on,
+					new View.OnClickListener() {
+						public void onClick(View v) {
+							saveConfig();
+							setLayout(LayoutID.kProgramme);
+						}
+					});
+			return true;
 		}
+
+		return false;
 	}
 
-	private void createSchduleLayout() {
+	private void createScheduleLayout() {
 
 		for (Widget widget : mScheduleWidgets) {
 
 			String name = widget.name;
-			if (mInvisibleWidgets.contains(name)) {
+
+			if (applyTopButtons(widget, name)) {
 				continue;
 			}
 
 			try {
-				widget.view = addImage(widget.savedRect, widget.savedResId);
+				widget.view = addImage(widget.xmlRect, widget.xmlResId);
 			} catch (Exception e) {
 				LOGE(widget.name);
 			}
@@ -182,67 +186,51 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 			if (name.contains(kHourSlotPrefix)) {
 				int slot = Integer.parseInt(name.substring(
 						kHourSlotPrefix.length(), name.length()));
-				mHourSlots[slot - 1] = new ScheduleSlot(widget);
+				// fade_color_1 -> hour: 10
+				// ...
+				// fade_color_15 -> hour: 0
+				// fade_color_16 -> hour: 1
+				mHourSlots[slot - 1] = new ScheduleSlot(widget, (slot + 9) % 24);
 			} else if (name.contains(kProgrammeSlotPrefix)) {
 				int slot = Integer.parseInt(name.substring(
 						kProgrammeSlotPrefix.length(), name.length()));
-				mProgrammeSlots[slot - 1] = new ScheduleSlot(widget);
+				// MOV_06 -> slot: 5
+				mProgrammeSlots[slot - 1] = new ScheduleSlot(widget, slot - 1);
 				mProgrammeSlots[slot - 1].widget.userId = slot - 1;
 			} else if (name.equals("delet_button_hl")) {
-				mProgrammeSlots[kProgrammeSlotCount - 1] = new ScheduleSlot(
-						widget);
-				mProgrammeSlots[kProgrammeSlotCount - 1].widget.userId = kProgrammeSlotCount - 1;
-			} else {
-				applyTopButtons(widget, name);
+				// -1 means invalid progId
+				mEraseProgramSlot = new ScheduleSlot(widget, -1);
+				mEraseProgramSlot.widget.userId = -1;
 			}
 		}
 
 		for (ScheduleSlot slot : mProgrammeSlots) {
 			slot.widget.view.bringToFront();
 		}
+
+		mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
 	}
 
 	private void loadConfig() {
 		SharedPreferences settings = getSharedPreferences(kConfigName,
 				MODE_PRIVATE);
 		for (int i = 0; i < kHourSlotCount; i++) {
-			int id = settings.getInt(kScheduleTimeProgrammeKey + i,
-					kProgrammeSlotCount - 1);
-			mHourSlots[i].widget.setUserId(id);
+			int id = settings.getInt(kScheduleTimeProgrammeKey + i, -1);
+			mHourSlots[i].setProgramId(id);
 		}
-		for (int i = 0; i < kProgrammeSlotCount - 1; i++) {
-			mProgrammeSlots[i].widget.setUserId(i);
+		for (int i = 0; i < kProgramCount; i++) {
+			mProgrammeSlots[i].setProgramId(i);
 		}
 	}
 
 	class Widget {
-		// TODO: kProgrammeColors -> userIds?
-		public void setUserId(int id) {
-			userId = id;
-			isSelected = true;
-			setSelected(false);
-		}
-
-		public void setSelected(boolean selected) {
-			if (isSelected != selected) {
-				isSelected = selected;
-				int clr = kProgrammeColors[userId];
-				if (!selected) {
-					clr = (150 << 24) | (clr & 0x00ffffff);
-				}
-				view.setImageDrawable(new ColorDrawable(clr));
-			}
-		}
-
-		boolean isSelected;
 
 		ImageView view;
 		String name = "";
-		String imageName = "";
 
-		int userId = 0;
-		int savedResId = -1;
-		Rect savedRect = new Rect();
+		int userId = 0; // can be anything
+		int xmlResId = -1;
+		Rect xmlRect = new Rect();
 		int savedZOrder = 0;
 	}
 
@@ -282,11 +270,8 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 							w -= 5;
 							h -= 6;
 						}
-						widget.savedRect.set(x, y, x + w, y + h);
-
-						// http://stackoverflow.com/questions/13351003/find-drawable-by-string
-						widget.savedResId = getResources().getIdentifier(
-								widget.name, "drawable", getPackageName());
+						widget.xmlRect.set(x, y, x + w, y + h);
+						widget.xmlResId = getDrawableByString(widget.name);
 
 						widgets.add(widget);
 					}
@@ -326,9 +311,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 		super.onCreate(savedInstanceState);
 
-		String[] invisibleArray = { "bg", "bg_copy" };
-		mInvisibleWidgets = new HashSet<String>(Arrays.asList(invisibleArray));
-
 		mScheduleWidgets = parseXML("SCHEDULE.xml");
 		mProgrammeWidgets = parseXML("PROGRAMME.xml");
 		mPreviewWidgets = parseXML("PREVIEW.xml");
@@ -340,8 +322,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 	private ArrayList<Widget> mProgrammeWidgets;
 	private ArrayList<Widget> mPreviewWidgets;
 
-	private Set<String> mInvisibleWidgets;
-
 	// HourSlot
 	final int kHourSlotCount = 16;
 
@@ -349,21 +329,47 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 	final String kHourSlotPrefix = "fade_color_";
 
 	// ProgrammeSlot
-	final int kProgrammeSlotCount = 7;
+	final int kProgramCount = 6;
 
-	int[] kProgrammeColors = { Color.rgb(255, 114, 0), Color.rgb(255, 6, 123),
-			Color.rgb(193, 6, 255), Color.rgb(123, 13, 247),
-			Color.rgb(63, 13, 247), Color.rgb(3, 115, 253),
-			Color.rgb(40, 13, 126) };
+	int[] kProgrammeColors = { Color.rgb(40, 13, 126), Color.rgb(255, 114, 0),
+			Color.rgb(255, 6, 123), Color.rgb(193, 6, 255),
+			Color.rgb(123, 13, 247), Color.rgb(63, 13, 247),
+			Color.rgb(3, 115, 253), };
 
-	class ProgrammeSettings {
+	class HourlyProgram {
+		public HourlyProgram() {
+			isInteractive = false;
+			isRandomAnimation = false;
+			animConfigs = new AnimConfig[kMovieCount];
+			for (int i = 0; i < kMovieCount; i++) {
+				animConfigs[i] = new AnimConfig();
+			}
+		}
+
+		final int kMovieCount = 10;
+
 		boolean isInteractive;
 		boolean isRandomAnimation;
+
+		class AnimConfig {
+			int loopCount = 1;
+			boolean isRandom = false;
+			int temprature = 100;
+			boolean enabled = true;
+		}
+
+		AnimConfig[] animConfigs;
 	}
 
+	int mSelectedProgrammeId;
+	private HourlyProgram[] mPrograms = new HourlyProgram[kProgramCount];
+
 	class ScheduleSlot {
-		public ScheduleSlot(Widget aWidget) {
+		int mOscId;
+
+		public ScheduleSlot(Widget aWidget, int oscId) {
 			widget = aWidget;
+			mOscId = oscId;
 
 			widget.view.setOnTouchListener(new View.OnTouchListener() {
 				public boolean onTouch(View v, MotionEvent event) {
@@ -375,42 +381,53 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 						isMoving = true;
 						widget.view.bringToFront();
 
-						mOffsetx = widget.savedRect.left - x;
-						mOffsety = widget.savedRect.top - y;
+						mOffsetx = widget.xmlRect.left - x;
+						mOffsety = widget.xmlRect.top - y;
 
 						return true;
 					}
 					case MotionEvent.ACTION_UP: {
 						if (isMoving) {
-							widget.view.setX(widget.savedRect.left);
-							widget.view.setY(widget.savedRect.top);
+							widget.view.setX(widget.xmlRect.left);
+							widget.view.setY(widget.xmlRect.top);
 
 							ScheduleSlot hitHourSlot = getHitSlot(x, y,
 									mHourSlots);
 							if (hitHourSlot != null) {
-								hitHourSlot.widget.setUserId(widget.userId);
+								hitHourSlot.setProgramId(widget.userId);
 							}
 
 							isMoving = false;
-							
+
+							// this value is visible to all the three layouts
+							mSelectedProgrammeId = widget.userId;
+
+							if (widget.userId != -1) {
+								mProgrammeSceneBtn.setVisibility(View.VISIBLE);
+							} else {
+								mProgrammeSceneBtn
+										.setVisibility(View.INVISIBLE);
+							}
 							for (ScheduleSlot slot : mHourSlots) {
-								if (widget.userId != kProgrammeSlotCount -1 && (slot.widget.userId == widget.userId)) {
-									slot.widget.setSelected(true);
+								if (widget.userId != -1
+										&& (slot.widget.userId == widget.userId)) {
+									slot.setSelected(true);
 								} else {
-									slot.widget.setSelected(false);
+									slot.setSelected(false);
 								}
 							}
-							
+
 							// TODO: combine them
 							for (ScheduleSlot slot : mProgrammeSlots) {
-								if (widget.userId != kProgrammeSlotCount -1 && (slot.widget.userId == widget.userId)) {
-									slot.widget.setSelected(true);
+								if (widget.userId != -1
+										&& (slot.widget.userId == widget.userId)) {
+									slot.setSelected(true);
 								} else {
-									slot.widget.setSelected(false);
+									slot.setSelected(false);
 								}
 							}
-							
-							// TODO: highlight 
+
+							// TODO: highlight
 						}
 						return true;
 					}
@@ -436,7 +453,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 						ScheduleSlot[] slots) {
 					ScheduleSlot hit = null;
 					for (int i = 0; i < slots.length; i++) {
-						if (slots[i].widget.savedRect.contains(x, y)) {
+						if (slots[i].widget.xmlRect.contains(x, y)) {
 							hit = mHourSlots[i];
 							break;
 						}
@@ -446,21 +463,71 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 			});
 		}
 
+		final int kLedPort = 4444;
+
+		// TODO: kProgrammeColors -> userIds?
+		public void setProgramId(int id) {
+			if (id <= -1)
+				id = -1;
+			if (id > kProgramCount - 1)
+				id = kProgramCount - 1;
+			widget.userId = id;
+			isSelected = true;
+			setSelected(false);
+			OscMessage m = new OscMessage("/schedule");
+			m.add(mOscId);
+			m.add(id);
+			for (String ip : mRemoteIps)
+				mOscServer.send(m, ip, kLedPort);
+		}
+
+		public void setSelected(boolean selected) {
+			if (isSelected != selected) {
+				isSelected = selected;
+				int clr = kProgrammeColors[widget.userId + 1]; // HACK: -1 = ?
+				if (!selected) {
+					clr = (150 << 24) | (clr & 0x00ffffff);
+				}
+				widget.view.setImageDrawable(new ColorDrawable(clr));
+			}
+		}
+
+		boolean isSelected;
 		boolean isMoving; // user is moving the slot
 		Widget widget;
 	}
 
 	float mOffsetx, mOffsety;
 
-	private ScheduleSlot[] mProgrammeSlots = new ScheduleSlot[kProgrammeSlotCount];
+	ScheduleSlot[] mProgrammeSlots = new ScheduleSlot[kProgramCount];
+	ScheduleSlot mEraseProgramSlot;
 	final String kProgrammeSlotPrefix = "color_button";
 
 	// Save/Load
 	private String kConfigName = "CONFIG";
 	private String kScheduleTimeProgrammeKey = "kScheduleTimeProgrammeKey";
 
-	private ImageView mScheduleBtn, mProgrammeBtn;
-	private ImageView mScheduleOffBtn, mProgrammeOffBtn;
+	private ImageView mScheduleSceneBtn, mProgrammeSceneBtn;
+	final String kMovieSlotPrefix = "mov_";
+
+	final int kMovieCount = 10;
+	private MovieSlot[] mMovieSlots = new MovieSlot[kMovieCount];
+
+	class MovieSlot {
+		public MovieSlot(Widget aWidget) {
+			widget = aWidget;
+
+			widget.view.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					mSelectedMovieId = widget.userId;
+				}
+			});
+		}
+
+		Widget widget;
+	}
+
+	private int mSelectedMovieId = -1;
 
 	private int mCurrentLayout = -1;
 }
