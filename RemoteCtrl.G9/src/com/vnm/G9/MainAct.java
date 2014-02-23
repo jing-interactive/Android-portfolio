@@ -6,17 +6,12 @@ import java.util.Locale;
 
 import org.xmlpull.v1.XmlPullParser;
 
-import oscP5.OscMessage;
-
 import android.annotation.TargetApi;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.Rect;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Xml;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsoluteLayout;
 import android.widget.ImageView;
@@ -24,6 +19,7 @@ import android.widget.ImageView;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 @SuppressWarnings("deprecation")
 public class MainAct extends RemoteCtrl.BaseActivity {
+	static MainAct sInstance;
 
 	protected String getAppAboutMe() {
 		return "G9 Mobile Control.";
@@ -90,7 +86,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 	private void createProgrammeLayout() {
 
-		for (Widget widget : mProgrammeWidgets) {
+		for (Widget widget : mProgramWidgets) {
 
 			String name = widget.name;
 
@@ -100,14 +96,14 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 			int idOn = getDrawableByString(name + "_on");
 
-			if (name.contains(kMovieSlotPrefix)) {
+			if (name.contains(kAnimSlotPrefix)) {
 				int slot = Integer.parseInt(name.substring(
-						kMovieSlotPrefix.length(), name.length())) - 1;
-				widget.view = addButton("/debug/movie", slot,
+						kAnimSlotPrefix.length(), name.length())) - 1;
+				widget.view = addButton("/debug/Anim", slot,
 						widget.xmlRect.left, widget.xmlRect.top, idOn,
 						widget.xmlResId);
-				mMovieSlots[slot] = new MovieSlot(widget);
-				mMovieSlots[slot].widget.userId = slot;
+				mAnimSlots[slot] = new AnimSlot(widget);
+				mAnimSlots[slot].widget.userId = slot;
 			} else if (name.equals("preview")) {
 				widget.view = addButton(widget.xmlRect.left,
 						widget.xmlRect.top, idOn, widget.xmlResId, null);
@@ -223,17 +219,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		}
 	}
 
-	class Widget {
-
-		ImageView view;
-		String name = "";
-
-		int userId = 0; // can be anything
-		int xmlResId = -1;
-		Rect xmlRect = new Rect();
-		int savedZOrder = 0;
-	}
-
 	private ArrayList<Widget> parseXML(final String xmlName) {
 		ArrayList<Widget> widgets = null;
 		try {
@@ -309,23 +294,25 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 
+		sInstance = this;
+		
 		super.onCreate(savedInstanceState);
 
 		mScheduleWidgets = parseXML("SCHEDULE.xml");
-		mProgrammeWidgets = parseXML("PROGRAMME.xml");
+		mProgramWidgets = parseXML("PROGRAMME.xml");
 		mPreviewWidgets = parseXML("PREVIEW.xml");
 
 		setLayout(LayoutID.kSchedule);
 	}
 
 	private ArrayList<Widget> mScheduleWidgets;
-	private ArrayList<Widget> mProgrammeWidgets;
+	private ArrayList<Widget> mProgramWidgets;
 	private ArrayList<Widget> mPreviewWidgets;
 
 	// HourSlot
 	final int kHourSlotCount = 16;
 
-	private ScheduleSlot[] mHourSlots = new ScheduleSlot[kHourSlotCount];
+	public ScheduleSlot[] mHourSlots = new ScheduleSlot[kHourSlotCount];
 	final String kHourSlotPrefix = "fade_color_";
 
 	// ProgrammeSlot
@@ -336,169 +323,8 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 			Color.rgb(123, 13, 247), Color.rgb(63, 13, 247),
 			Color.rgb(3, 115, 253), };
 
-	class HourlyProgram {
-		public HourlyProgram() {
-			isInteractive = false;
-			isRandomAnimation = false;
-			animConfigs = new AnimConfig[kMovieCount];
-			for (int i = 0; i < kMovieCount; i++) {
-				animConfigs[i] = new AnimConfig();
-			}
-		}
 
-		final int kMovieCount = 10;
-
-		boolean isInteractive;
-		boolean isRandomAnimation;
-
-		class AnimConfig {
-			int loopCount = 1;
-			boolean isRandom = false;
-			int temprature = 100;
-			boolean enabled = true;
-		}
-
-		AnimConfig[] animConfigs;
-	}
-
-	int mSelectedProgrammeId;
 	private HourlyProgram[] mPrograms = new HourlyProgram[kProgramCount];
-
-	class ScheduleSlot {
-		int mOscId;
-
-		public ScheduleSlot(Widget aWidget, int oscId) {
-			widget = aWidget;
-			mOscId = oscId;
-
-			widget.view.setOnTouchListener(new View.OnTouchListener() {
-				public boolean onTouch(View v, MotionEvent event) {
-					int x = (int) event.getRawX();
-					int y = (int) event.getRawY();
-
-					switch (event.getActionMasked()) {
-					case MotionEvent.ACTION_DOWN: {
-						isMoving = true;
-						widget.view.bringToFront();
-
-						mOffsetx = widget.xmlRect.left - x;
-						mOffsety = widget.xmlRect.top - y;
-
-						return true;
-					}
-					case MotionEvent.ACTION_UP: {
-						if (isMoving) {
-							widget.view.setX(widget.xmlRect.left);
-							widget.view.setY(widget.xmlRect.top);
-
-							ScheduleSlot hitHourSlot = getHitSlot(x, y,
-									mHourSlots);
-							if (hitHourSlot != null) {
-								hitHourSlot.setProgramId(widget.userId);
-							}
-
-							isMoving = false;
-
-							// this value is visible to all the three layouts
-							mSelectedProgrammeId = widget.userId;
-
-							if (widget.userId != -1) {
-								mProgrammeSceneBtn.setVisibility(View.VISIBLE);
-							} else {
-								mProgrammeSceneBtn
-										.setVisibility(View.INVISIBLE);
-							}
-							for (ScheduleSlot slot : mHourSlots) {
-								if (widget.userId != -1
-										&& (slot.widget.userId == widget.userId)) {
-									slot.setSelected(true);
-								} else {
-									slot.setSelected(false);
-								}
-							}
-
-							// TODO: combine them
-							for (ScheduleSlot slot : mProgrammeSlots) {
-								if (widget.userId != -1
-										&& (slot.widget.userId == widget.userId)) {
-									slot.setSelected(true);
-								} else {
-									slot.setSelected(false);
-								}
-							}
-
-							// TODO: highlight
-						}
-						return true;
-					}
-					case MotionEvent.ACTION_MOVE: {
-						if (isMoving) {
-							widget.view.setX(mOffsetx + x);
-							widget.view.setY(mOffsety + y);
-						}
-
-						return true;
-					}
-					}
-					return true;
-				}
-
-				/**
-				 * @param x
-				 * @param y
-				 * @param hitHourSlot
-				 * @return
-				 */
-				private ScheduleSlot getHitSlot(int x, int y,
-						ScheduleSlot[] slots) {
-					ScheduleSlot hit = null;
-					for (int i = 0; i < slots.length; i++) {
-						if (slots[i].widget.xmlRect.contains(x, y)) {
-							hit = mHourSlots[i];
-							break;
-						}
-					}
-					return hit;
-				}
-			});
-		}
-
-		final int kLedPort = 4444;
-
-		// TODO: kProgrammeColors -> userIds?
-		public void setProgramId(int id) {
-			if (id <= -1)
-				id = -1;
-			if (id > kProgramCount - 1)
-				id = kProgramCount - 1;
-			widget.userId = id;
-			isSelected = true;
-			setSelected(false);
-			OscMessage m = new OscMessage("/schedule");
-			m.add(mOscId);
-			m.add(id);
-			for (String ip : mRemoteIps)
-				mOscServer.send(m, ip, kLedPort);
-		}
-
-		public void setSelected(boolean selected) {
-			if (isSelected != selected) {
-				isSelected = selected;
-				int clr = kProgrammeColors[widget.userId + 1]; // HACK: -1 = ?
-				if (!selected) {
-					clr = (150 << 24) | (clr & 0x00ffffff);
-				}
-				widget.view.setImageDrawable(new ColorDrawable(clr));
-			}
-		}
-
-		boolean isSelected;
-		boolean isMoving; // user is moving the slot
-		Widget widget;
-	}
-
-	float mOffsetx, mOffsety;
-
 	ScheduleSlot[] mProgrammeSlots = new ScheduleSlot[kProgramCount];
 	ScheduleSlot mEraseProgramSlot;
 	final String kProgrammeSlotPrefix = "color_button";
@@ -507,27 +333,11 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 	private String kConfigName = "CONFIG";
 	private String kScheduleTimeProgrammeKey = "kScheduleTimeProgrammeKey";
 
-	private ImageView mScheduleSceneBtn, mProgrammeSceneBtn;
-	final String kMovieSlotPrefix = "mov_";
+	public ImageView mScheduleSceneBtn, mProgrammeSceneBtn;
+	final String kAnimSlotPrefix = "mov_";
 
-	final int kMovieCount = 10;
-	private MovieSlot[] mMovieSlots = new MovieSlot[kMovieCount];
-
-	class MovieSlot {
-		public MovieSlot(Widget aWidget) {
-			widget = aWidget;
-
-			widget.view.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					mSelectedMovieId = widget.userId;
-				}
-			});
-		}
-
-		Widget widget;
-	}
-
-	private int mSelectedMovieId = -1;
+	final int kAnimCount = 10;
+	private AnimSlot[] mAnimSlots = new AnimSlot[kAnimCount];
 
 	private int mCurrentLayout = -1;
 }
