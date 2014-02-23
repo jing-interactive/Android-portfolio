@@ -1,14 +1,23 @@
 package com.vnm.G9;
 
+import java.util.ArrayList;
+
 import oscP5.OscMessage;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.MotionEvent;
 import android.view.View;
 
 class ScheduleSlot {
-	static float sOffsetx, sOffsety;
+	static int kCount = 16;
 
+	static float sOffsetx, sOffsety;
+	static public String kConfigKey = "kScheduleTimeProgrammeKey";
 	int mOscId;
+	int[] kProgrammeColors = { Color.rgb(40, 13, 126), Color.rgb(255, 114, 0),
+			Color.rgb(255, 6, 123), Color.rgb(193, 6, 255),
+			Color.rgb(123, 13, 247), Color.rgb(63, 13, 247),
+			Color.rgb(3, 115, 253), };
 
 	public ScheduleSlot(Widget aWidget, int oscId) {
 		widget = aWidget;
@@ -34,9 +43,13 @@ class ScheduleSlot {
 						widget.view.setX(widget.xmlRect.left);
 						widget.view.setY(widget.xmlRect.top);
 
-						ScheduleSlot hitHourSlot = getHitSlot(x, y, MainAct.sInstance.mHourSlots);
+						ScheduleSlot hitHourSlot = ScheduleLayout
+								.getHitSlot(
+										x,
+										y,
+										MainAct.sInstance.mScheduleLayout.mHourSlots);
 						if (hitHourSlot != null) {
-							hitHourSlot.setProgramId(widget.userId);
+							hitHourSlot.setUserId(widget.userId);
 						}
 
 						isMoving = false;
@@ -45,11 +58,13 @@ class ScheduleSlot {
 						HourlyProgram.mSelectedId = widget.userId;
 
 						if (widget.userId != -1) {
-							MainAct.sInstance.mProgrammeSceneBtn.setVisibility(View.VISIBLE);
+							MainAct.sInstance.mProgrammeSceneBtn
+									.setVisibility(View.VISIBLE);
 						} else {
-							MainAct.sInstance.mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
+							MainAct.sInstance.mProgrammeSceneBtn
+									.setVisibility(View.INVISIBLE);
 						}
-						for (ScheduleSlot slot : MainAct.sInstance.mHourSlots) {
+						for (ScheduleSlot slot : MainAct.sInstance.mScheduleLayout.mHourSlots) {
 							if (widget.userId != -1
 									&& (slot.widget.userId == widget.userId)) {
 								slot.setSelected(true);
@@ -59,7 +74,7 @@ class ScheduleSlot {
 						}
 
 						// TODO: combine them
-						for (ScheduleSlot slot : MainAct.sInstance.mProgrammeSlots) {
+						for (ScheduleSlot slot : MainAct.sInstance.mScheduleLayout.mProgramSlots) {
 							if (widget.userId != -1
 									&& (slot.widget.userId == widget.userId)) {
 								slot.setSelected(true);
@@ -84,47 +99,32 @@ class ScheduleSlot {
 				return true;
 			}
 
-			/**
-			 * @param x
-			 * @param y
-			 * @param hitHourSlot
-			 * @return
-			 */
-			private ScheduleSlot getHitSlot(int x, int y, ScheduleSlot[] slots) {
-				ScheduleSlot hit = null;
-				for (int i = 0; i < slots.length; i++) {
-					if (slots[i].widget.xmlRect.contains(x, y)) {
-						hit = MainAct.sInstance.mHourSlots[i];
-						break;
-					}
-				}
-				return hit;
-			}
 		});
 	}
 
-	final int kLedPort = 4444;
-
 	// TODO: kProgrammeColors -> userIds?
-	public void setProgramId(int id) {
-		if (id <= -1)
-			id = -1;
-		if (id > MainAct.sInstance.kProgramCount - 1)
-			id = MainAct.sInstance.kProgramCount - 1;
+	public void setUserId(int id) {
+		id = Math.max(id, -1);
+		id = Math.min(id, HourlyProgram.kCount - 1);
+
 		widget.userId = id;
 		isSelected = true;
 		setSelected(false);
-		OscMessage m = new OscMessage("/schedule");
-		m.add(mOscId);
-		m.add(id);
-		for (String ip : MainAct.sInstance.mRemoteIps)
-			MainAct.sInstance.mOscServer.send(m, ip, kLedPort);
+
+		{
+			OscMessage m = new OscMessage("/schedule");
+			m.add(mOscId);
+			m.add(id);
+			for (String ip : MainAct.sInstance.mRemoteIps)
+				MainAct.sInstance.mOscServer.send(m, ip,
+						MainAct.sInstance.kLedPort);
+		}
 	}
 
 	public void setSelected(boolean selected) {
 		if (isSelected != selected) {
 			isSelected = selected;
-			int clr = MainAct.sInstance.kProgrammeColors[widget.userId + 1]; // HACK: -1 = ?
+			int clr = kProgrammeColors[widget.userId + 1]; // HACK: -1 = ?
 			if (!selected) {
 				clr = (150 << 24) | (clr & 0x00ffffff);
 			}
@@ -135,32 +135,4 @@ class ScheduleSlot {
 	boolean isSelected;
 	boolean isMoving; // user is moving the slot
 	Widget widget;
-}
-
-
-class HourlyProgram {
-	static int mSelectedId = -1;
-
-	public HourlyProgram() {
-		isInteractive = false;
-		isRandomAnimation = false;
-		animConfigs = new AnimConfig[kAnimCount];
-		for (int i = 0; i < kAnimCount; i++) {
-			animConfigs[i] = new AnimConfig();
-		}
-	}
-
-	final int kAnimCount = 10;
-
-	boolean isInteractive;
-	boolean isRandomAnimation;
-
-	class AnimConfig {
-		int loopCount = 1;
-		boolean isRandom = false;
-		int temprature = 100;
-		boolean enabled = true;
-	}
-
-	AnimConfig[] animConfigs;
 }
