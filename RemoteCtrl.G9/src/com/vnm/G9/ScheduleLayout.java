@@ -10,10 +10,9 @@ class ScheduleLayout {
 
 	public ArrayList<Widget> mWidgets;
 
-	private HourlyProgram[] mPrograms = new HourlyProgram[HourlyProgram.kCount];
-	ScheduleSlot[] mProgramSlots = new ScheduleSlot[HourlyProgram.kCount];
+	ScheduleSlot[] mProgramSlots = new ScheduleSlot[Config.kCount];
 	ScheduleSlot mEraseProgramSlot;
-	final String kProgrammeSlotPrefix = "color_button";
+	final String kProgramSlotPrefix = "color_button";
 
 	// HourSlot
 	public ScheduleSlot[] mHourSlots = new ScheduleSlot[ScheduleSlot.kCount];
@@ -34,7 +33,7 @@ class ScheduleLayout {
 			int id = settings.getInt(ScheduleSlot.kConfigKey + i, -1);
 			mHourSlots[i].setUserId(id);
 		}
-		for (int i = 0; i < HourlyProgram.kCount; i++) {
+		for (int i = 0; i < Config.kCount; i++) {
 			mProgramSlots[i].setUserId(i);
 		}
 	}
@@ -48,9 +47,11 @@ class ScheduleLayout {
 
 	public void createLayout() {
 
-		if (mWidgets.size() == 0) {
+		if (mWidgets == null) {
+			mWidgets = new ArrayList<Widget>();
 			mWidgets = Widget.parseXML("SCHEDULE.xml");
 		}
+		
 		for (Widget widget : mWidgets) {
 
 			String name = widget.name;
@@ -75,11 +76,11 @@ class ScheduleLayout {
 				// fade_color_15 -> hour: 0
 				// fade_color_16 -> hour: 1
 				mHourSlots[slot - 1] = new ScheduleSlot(widget, (slot + 9) % 24);
-			} else if (name.contains(kProgrammeSlotPrefix)) {
+			} else if (name.contains(kProgramSlotPrefix)) {
 				int slot = Integer.parseInt(name.substring(
-						kProgrammeSlotPrefix.length(), name.length()));
+						kProgramSlotPrefix.length(), name.length()));
 				// MOV_06 -> slot: 5
-				mProgramSlots[slot - 1] = new ScheduleSlot(widget, slot - 1);
+				mProgramSlots[slot - 1] = new ScheduleSlot(widget, -1);
 				mProgramSlots[slot - 1].widget.userId = slot - 1;
 			} else if (name.equals("delet_button_hl")) {
 				// -1 means invalid progId

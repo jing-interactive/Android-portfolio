@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">G9</string>
+    <item type="id" name="TAG_RES_ON"/>
+    <item type="id" name="TAG_RES_OFF"/>
+    <item type="id" name="TAG_BOOLEAN_STATE"/>
 </resources>

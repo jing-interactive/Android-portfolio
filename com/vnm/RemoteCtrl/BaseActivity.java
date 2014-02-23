@@ -87,7 +87,7 @@ public abstract class BaseActivity extends Activity {
 	final static Drawable transparent_drawable = new ColorDrawable(
 			Color.TRANSPARENT);
 
-	protected int getDrawableByString(String name) {
+	public int getDrawableByString(String name) {
 		return getResources().getIdentifier(name, "drawable", getPackageName());
 	}
 
@@ -117,11 +117,11 @@ public abstract class BaseActivity extends Activity {
 	}
 
 	//
-	protected OscP5 mOscServer;
+	public OscP5 mOscServer;
 
 	String STORE_NAME = "Settings";
 
-	protected String mRemoteIps[];
+	public String mRemoteIps[];
 	final int kRemotePort = 3333;
 	final int kListenPort = 4444;
 
@@ -130,7 +130,7 @@ public abstract class BaseActivity extends Activity {
 	int DeviceW = 1280;
 	int DeviceH = 752;
 
-	protected AbsoluteLayout mMainLayout;
+	public AbsoluteLayout mMainLayout;
 
 	Map<Integer, Integer> mSliderMap = new HashMap<Integer, Integer>();
 
@@ -189,7 +189,7 @@ public abstract class BaseActivity extends Activity {
 	protected void removeView(View view) {
 		mMainLayout.removeView(view);
 	}
-	
+
 	protected void removeView(int id) {
 		mMainLayout.removeView(findViewById(id));
 	}
@@ -236,27 +236,27 @@ public abstract class BaseActivity extends Activity {
 	}
 
 	// 无 osc，但可自定义消息
-	protected ImageButton addButton(int x, int y, final int img_on, final int img,
+	public ImageButton addButton(int x, int y, final int img_on, final int img,
 			final OnClickListener bonus_listener) {
 		return addButton("", -1, x, y, -1, -1, img_on, img, -1, bonus_listener);
 	}
 
 	// 增加按钮，无场景切换
-	protected ImageButton addButton(final String addr, final int osc_value,
-			int x, int y, final int img_on, final int img) {
+	public ImageButton addButton(final String addr, final int osc_value, int x,
+			int y, final int img_on, final int img) {
 		return addButton(addr, osc_value, x, y, -1, -1, img_on, img, -1, null);
 	}
 
 	// 增加按钮，有场景切换
-	protected ImageButton addButton(final String addr, final int osc_value,
-			int x, int y, final int img_on, final int img, final int new_layout) {
+	public ImageButton addButton(final String addr, final int osc_value, int x,
+			int y, final int img_on, final int img, final int new_layout) {
 		return addButton(addr, osc_value, x, y, -1, -1, img_on, img,
 				new_layout, null);
 	}
 
 	// 通常不需要直接调用
-	protected ImageButton addButton(final String addr, final int osc_value,
-			int x, int y, int w, int h, final int img_on, final int img,
+	public ImageButton addButton(final String addr, final int osc_value, int x,
+			int y, int w, int h, final int img_on, final int img,
 			final int new_layout, final OnClickListener bonus_listener) {
 		ImageButton btn = new ImageButton(this);
 		btn.setId(img_on);
@@ -291,52 +291,56 @@ public abstract class BaseActivity extends Activity {
 				case MotionEvent.ACTION_UP:
 					if (osc_value >= 0)
 						sendCmd(addr, osc_value);
+					v.setBackgroundResource(img);
+					if (bonus_listener != null)
+						bonus_listener.onClick(v);
 				default:
-					if (!v.isSelected())
-						v.setBackgroundResource(img);
+//					if (!v.isSelected())
+//						v.setBackgroundResource(img);
 					break;
 				}
 				return false;
 			}
 		});
 
-//		btn.setOnClickListener(new OnClickListener() {
-//			public void onClick(View v) {
-//				if (osc_value >= 0)
-//					sendCmd(addr, osc_value);
-//
-//				// #3 test for main buttons
-//				if (new_layout >= 0) {
-//					setLayout(new_layout);
-//				} else {
-//					// #1 reset other buttons in the same group
-//					int n = mMainLayout.getChildCount();
-//
-//					for (int i = 0; i < n; i++) {
-//						View child = mMainLayout.getChildAt(i);
-//						if (child.getId() != img_on) {
-//							child.setSelected(false);
-//							Integer tag = (Integer) child.getTag();
-//							if (tag != null)
-//								child.setBackgroundResource(tag.intValue());
-//						}
-//					}
-//
-//					// #2 set current button
-//					v.setSelected(true);
-//					v.setBackgroundResource(img_on);
-//					v.bringToFront();
-//				}
-//
-//				if (bonus_listener != null)
-//					bonus_listener.onClick(v);
-//			}
-//		});
+		// btn.setOnClickListener(new OnClickListener() {
+		// public void onClick(View v) {
+		// if (osc_value >= 0)
+		// sendCmd(addr, osc_value);
+		//
+		// // #3 test for main buttons
+		// if (new_layout >= 0) {
+		// setLayout(new_layout);
+		// } else {
+		// // #1 reset other buttons in the same group
+		// int n = mMainLayout.getChildCount();
+		//
+		// for (int i = 0; i < n; i++) {
+		// View child = mMainLayout.getChildAt(i);
+		// if (child.getId() != img_on) {
+		// child.setSelected(false);
+		// Integer tag = (Integer) child.getTag();
+		// if (tag != null)
+		// child.setBackgroundResource(tag.intValue());
+		// }
+		// }
+		//
+		// // #2 set current button
+		// v.setSelected(true);
+		// v.setBackgroundResource(img_on);
+		// v.bringToFront();
+		// }
+		//
+		// if (bonus_listener != null)
+		// bonus_listener.onClick(v);
+		// }
+		// });
 		return btn;
 	}
 
-	protected ImageButton addToggleButton(final String addr, final int osc1,
-			final int osc2, int x, int y, final int img1, final int img2, final OnClickListener bonus_listener) {
+	public ImageButton addToggleButton(final String addr, final int osc1,
+			final int osc2, int x, int y, final int img1, final int img2,
+			final OnClickListener bonus_listener) {
 		ImageButton btn = addButton(addr, 0, x, y, img1, img2);
 
 		btn.setOnTouchListener(null);
@@ -357,8 +361,8 @@ public abstract class BaseActivity extends Activity {
 				}
 				v.setTag(new Boolean(!tag.booleanValue()));
 				v.bringToFront();
-				
-				if (bonus_listener != null){
+
+				if (bonus_listener != null) {
 					bonus_listener.onClick(v);
 				}
 			}
@@ -369,7 +373,8 @@ public abstract class BaseActivity extends Activity {
 	// 增加图片
 	public ImageView addImage(Rect rect, final int img) {
 		return addImage(rect.left, rect.top, rect.width(), rect.height(), img);
-	}	
+	}
+
 	public ImageView addImage(int x, int y, final int img) {
 		return addImage(x, y, -1, -1, img);
 	}
@@ -620,14 +625,15 @@ public abstract class BaseActivity extends Activity {
 		// hide status bar
 		getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 		// always light on
-//		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-//				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		// getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+		// WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-//		http://stackoverflow.com/questions/6343166/android-os-networkonmainthreadexception
-		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-		StrictMode.setThreadPolicy(policy); 
+		// http://stackoverflow.com/questions/6343166/android-os-networkonmainthreadexception
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+				.permitAll().build();
+		StrictMode.setThreadPolicy(policy);
 
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);

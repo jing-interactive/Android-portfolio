@@ -1,7 +1,5 @@
 package com.vnm.G9;
 
-import java.util.ArrayList;
-
 import oscP5.OscMessage;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -13,7 +11,7 @@ class ScheduleSlot {
 
 	static float sOffsetx, sOffsety;
 	static public String kConfigKey = "kScheduleTimeProgrammeKey";
-	int mOscId;
+	int mOscId = -1;
 	int[] kProgrammeColors = { Color.rgb(40, 13, 126), Color.rgb(255, 114, 0),
 			Color.rgb(255, 6, 123), Color.rgb(193, 6, 255),
 			Color.rgb(123, 13, 247), Color.rgb(63, 13, 247),
@@ -55,7 +53,7 @@ class ScheduleSlot {
 						isMoving = false;
 
 						// this value is visible to all the three layouts
-						HourlyProgram.mSelectedId = widget.userId;
+						Config.mSelectedId = widget.userId;
 
 						if (widget.userId != -1) {
 							MainAct.sInstance.mProgrammeSceneBtn
@@ -105,7 +103,7 @@ class ScheduleSlot {
 	// TODO: kProgrammeColors -> userIds?
 	public void setUserId(int id) {
 		id = Math.max(id, -1);
-		id = Math.min(id, HourlyProgram.kCount - 1);
+		id = Math.min(id, Config.kCount - 1);
 
 		widget.userId = id;
 		isSelected = true;

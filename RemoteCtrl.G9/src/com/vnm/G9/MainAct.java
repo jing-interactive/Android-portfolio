@@ -1,17 +1,10 @@
 package com.vnm.G9;
 
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Locale;
-
-import org.xmlpull.v1.XmlPullParser;
-
 import android.annotation.TargetApi;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Xml;
 import android.view.View;
 import android.widget.AbsoluteLayout;
 import android.widget.ImageView;
@@ -80,11 +73,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		loadConfig();
 	}
 
-
-	/**
-	 * @param widget
-	 * @param name
-	 */
 	public boolean applyTopButtons(Widget widget, String name) {
 		// if (name.equals("schedule")) {
 		// mScheduleBtn = widget.view;
@@ -128,7 +116,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 				MODE_PRIVATE);
 		mScheduleLayout.loadConfig(settings);
 		mAnimLayout.loadConfig(settings);
-
 	}
 
 	void saveConfig() {
