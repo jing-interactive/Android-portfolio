@@ -6,8 +6,10 @@ import oscP5.OscMessage;
 
 import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsoluteLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 class AnimLayout {
@@ -22,6 +24,7 @@ class AnimLayout {
 	AnimConfig mCurrentAnimConfig;
 
 	TextView mLoopCountView;
+	ImageView mSliderButton;
 
 	public static AnimSlot getHitSlot(int x, int y, AnimSlot[] slots) {
 		AnimSlot hit = null;
@@ -53,6 +56,10 @@ class AnimLayout {
 		}
 	}
 
+	final int kSliderStartX = 40;
+	final int kSliderEndX = 549;
+	final int kSliderMaxValue = 10000;
+
 	public void createLayout() {
 
 		if (mWidgets == null) {
@@ -72,7 +79,31 @@ class AnimLayout {
 			final int idOn = MainAct.sInstance
 					.getDrawableByString(name + "_on");
 
-			if (name.contains(kAnimSlotPrefix)) {
+			if (name.equals("lighting_triangle")) {
+				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, widget.xmlResId, widget.xmlResId,
+						null);
+				widget.view.setOnTouchListener(new View.OnTouchListener() {
+					public boolean onTouch(View v, MotionEvent event) {
+						int x = (int) event.getRawX();
+						int y = (int) event.getRawY();
+
+						switch (event.getActionMasked()) {
+						case MotionEvent.ACTION_MOVE: {
+							if (x >= kSliderStartX && x <= kSliderEndX) {
+								v.setX(x);
+								setSlider((x - kSliderStartX)
+										/ (float) kSliderEndX);
+							}
+							return true;
+						}
+						}
+
+						return false;
+					}
+				});
+				mSliderButton = widget.view;
+			} else if (name.contains(kAnimSlotPrefix)) {
 				final int slot = Integer.parseInt(name.substring(
 						kAnimSlotPrefix.length(), name.length())) - 1;
 				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
@@ -164,13 +195,13 @@ class AnimLayout {
 		}
 	}
 
-	void onReset(){
+	void onReset() {
 		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
 		mCurrentConfig.animConfigs[currentAnimIdx] = new AnimConfig();
 		updateLayoutFromConfig();
 		onUpdate();
 	}
-	
+
 	void onUpdate() {
 		mCurrentConfig.sendOscMsg(Config.mSelectedId);
 	}
@@ -178,6 +209,21 @@ class AnimLayout {
 	void setLoopCount(int loopCount) {
 		mCurrentAnimConfig.loopCount = loopCount;
 		mLoopCountView.setText(String.valueOf(mCurrentAnimConfig.loopCount));
+	}
+
+	void setSlider(float ratio) {
+		mCurrentAnimConfig.lightValue = (int) (kSliderMaxValue * ratio);
+		// mCurrentConfig.sendOscMsg(Config.mSelectedId);
+		// TODO: slider only
+		// TODO: set text
+	}
+
+	void setSlider(int lightValue) {
+		mCurrentAnimConfig.lightValue = lightValue;
+		mSliderButton.setX(lightValue * (kSliderEndX - kSliderStartX) / (float) kSliderMaxValue + kSliderStartX);
+		// mCurrentConfig.sendOscMsg(Config.mSelectedId);
+		// TODO: slider only
+		// TODO: set text
 	}
 
 	void updateLayoutFromConfig() {
