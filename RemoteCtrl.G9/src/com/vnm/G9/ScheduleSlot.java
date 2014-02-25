@@ -9,7 +9,7 @@ import android.view.View;
 class ScheduleSlot {
 	static int kCount = 16;
 
-	static float sOffsetx, sOffsety;
+	float mOffsetx, mOffsety;
 	static public String kConfigKey = "kScheduleTimeProgrammeKey";
 	int mOscId = -1;
 	int[] kProgrammeColors = { Color.rgb(40, 13, 126), Color.rgb(255, 114, 0),
@@ -31,8 +31,8 @@ class ScheduleSlot {
 					isMoving = true;
 					widget.view.bringToFront();
 
-					sOffsetx = widget.xmlRect.left - x;
-					sOffsety = widget.xmlRect.top - y;
+					mOffsetx = widget.xmlRect.left - x;
+					mOffsety = widget.xmlRect.top - y;
 
 					return true;
 				}
@@ -87,8 +87,8 @@ class ScheduleSlot {
 				}
 				case MotionEvent.ACTION_MOVE: {
 					if (isMoving) {
-						widget.view.setX(sOffsetx + x);
-						widget.view.setY(sOffsety + y);
+						widget.view.setX(mOffsetx + x);
+						widget.view.setY(mOffsety + y);
 					}
 
 					return true;

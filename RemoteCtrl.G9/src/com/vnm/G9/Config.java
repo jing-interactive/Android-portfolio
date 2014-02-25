@@ -8,22 +8,22 @@ class AnimConfig {
 
 	boolean isEnabled = true;
 	int loopCount = 1;// bigger than 1
-	int lightValue = 1000;
-	int lightValue2 = 0; // if non-zero, then random light value from
+	float lightValue = 0.5f;
+	float lightValue2 = 0; // if non-zero, then random light value from
 							// (lightValue, lightValue2)
 
 	public void loadConfig(SharedPreferences settings, String nameOfKey) {
 		isEnabled = settings.getBoolean(nameOfKey + "/isEnabled", isEnabled);
 		loopCount = settings.getInt(nameOfKey + "/loopCount", loopCount);
-		lightValue = settings.getInt(nameOfKey + "/lightValue", lightValue);
-		lightValue2 = settings.getInt(nameOfKey + "/lightValue2", lightValue2);
+		lightValue = settings.getFloat(nameOfKey + "/lightValue", lightValue);
+		lightValue2 = settings.getFloat(nameOfKey + "/lightValue2", lightValue2);
 	}
 
 	public void saveConfig(SharedPreferences.Editor editor, String nameOfKey) {
 		editor.putBoolean(nameOfKey + "/isEnabled", isEnabled);
 		editor.putInt(nameOfKey + "/loopCount", loopCount);
-		editor.putInt(nameOfKey + "/lightValue", lightValue);
-		editor.putInt(nameOfKey + "/lightValue2", lightValue2);
+		editor.putFloat(nameOfKey + "/lightValue", lightValue);
+		editor.putFloat(nameOfKey + "/lightValue2", lightValue2);
 	}
 
 	public void processOscMsg(OscMessage m) {

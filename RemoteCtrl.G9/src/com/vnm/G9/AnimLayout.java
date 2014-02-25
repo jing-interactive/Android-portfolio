@@ -2,8 +2,6 @@ package com.vnm.G9;
 
 import java.util.ArrayList;
 
-import oscP5.OscMessage;
-
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.view.MotionEvent;
@@ -14,6 +12,7 @@ import android.widget.TextView;
 
 class AnimLayout {
 	static final String kAnimSlotPrefix = "mov_";
+	static final String kAnimEnablePrefix = "move_on_";
 	Config[] mConfigs = new Config[Config.kCount];
 	Config mCurrentConfig;
 
@@ -24,7 +23,9 @@ class AnimLayout {
 	AnimConfig mCurrentAnimConfig;
 
 	TextView mLoopCountView;
-	ImageView mSliderButton;
+	Widget mSliderButton;
+
+	private View[] mEnableFlagViews = new View[AnimSlot.kCount];
 
 	public static AnimSlot getHitSlot(int x, int y, AnimSlot[] slots) {
 		AnimSlot hit = null;
@@ -56,9 +57,10 @@ class AnimLayout {
 		}
 	}
 
-	final int kSliderStartX = 40;
-	final int kSliderEndX = 549;
-	final int kSliderMaxValue = 10000;
+	int mSliderStartX;
+	int mSliderEndX;
+
+	float mOffsetX;
 
 	public void createLayout() {
 
@@ -79,21 +81,27 @@ class AnimLayout {
 			final int idOn = MainAct.sInstance
 					.getDrawableByString(name + "_on");
 
+			if (name.equals("lighting_gradual")) {
+				mSliderStartX = widget.xmlRect.left;
+				mSliderEndX = widget.xmlRect.right;
+			}
 			if (name.equals("lighting_triangle")) {
 				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
-						widget.xmlRect.top, widget.xmlResId, widget.xmlResId,
-						null);
+						widget.xmlRect.top - 75, R.drawable.light_slider,
+						R.drawable.light_slider, null);
+				mSliderButton = widget;
+				widget.view.bringToFront();
 				widget.view.setOnTouchListener(new View.OnTouchListener() {
 					public boolean onTouch(View v, MotionEvent event) {
 						int x = (int) event.getRawX();
-						int y = (int) event.getRawY();
-
 						switch (event.getActionMasked()) {
+						case MotionEvent.ACTION_DOWN: {
+							mOffsetX = mSliderButton.xmlRect.left - x;
+						}
 						case MotionEvent.ACTION_MOVE: {
-							if (x >= kSliderStartX && x <= kSliderEndX) {
-								v.setX(x);
-								setSlider((x - kSliderStartX)
-										/ (float) kSliderEndX);
+							if (x >= mSliderStartX && x <= mSliderEndX) {
+								setSlider((x - mSliderStartX)
+										/ (float) (mSliderEndX - mSliderStartX));
 							}
 							return true;
 						}
@@ -102,7 +110,6 @@ class AnimLayout {
 						return false;
 					}
 				});
-				mSliderButton = widget.view;
 			} else if (name.contains(kAnimSlotPrefix)) {
 				final int slot = Integer.parseInt(name.substring(
 						kAnimSlotPrefix.length(), name.length())) - 1;
@@ -182,6 +189,13 @@ class AnimLayout {
 			} else {
 				widget.view = MainAct.sInstance.addImage(widget.xmlRect,
 						widget.xmlResId);
+
+				if (name.contains(kAnimEnablePrefix)) {
+					final int slot = Integer.parseInt(name.substring(
+							kAnimEnablePrefix.length(), name.length())) - 1;
+					mEnableFlagViews[slot] = widget.view;
+					widget.view.setVisibility(View.INVISIBLE);
+				}
 			}
 		}
 
@@ -212,23 +226,23 @@ class AnimLayout {
 	}
 
 	void setSlider(float ratio) {
-		mCurrentAnimConfig.lightValue = (int) (kSliderMaxValue * ratio);
+		mCurrentAnimConfig.lightValue = ratio;
+		mSliderButton.view.setX(ratio * (mSliderEndX - mSliderStartX)
+				+ mSliderStartX);
 		// mCurrentConfig.sendOscMsg(Config.mSelectedId);
-		// TODO: slider only
-		// TODO: set text
 	}
 
-	void setSlider(int lightValue) {
-		mCurrentAnimConfig.lightValue = lightValue;
-		mSliderButton.setX(lightValue * (kSliderEndX - kSliderStartX) / (float) kSliderMaxValue + kSliderStartX);
-		// mCurrentConfig.sendOscMsg(Config.mSelectedId);
-		// TODO: slider only
-		// TODO: set text
+	void setEnabled(boolean flag) {
+		mCurrentAnimConfig.isEnabled = flag;
+		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
+		mEnableFlagViews[currentAnimIdx].setVisibility(flag ? View.VISIBLE
+				: View.INVISIBLE);
 	}
 
 	void updateLayoutFromConfig() {
 		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
 		mCurrentAnimConfig = mCurrentConfig.animConfigs[currentAnimIdx];
 		setLoopCount(mCurrentAnimConfig.loopCount);
+		setSlider(mCurrentAnimConfig.lightValue);
 	}
 }
