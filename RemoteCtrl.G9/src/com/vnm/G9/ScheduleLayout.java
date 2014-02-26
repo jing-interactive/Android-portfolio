@@ -17,6 +17,23 @@ class ScheduleLayout {
 	// HourSlot
 	public ScheduleSlot[] mHourSlots = new ScheduleSlot[ScheduleSlot.kCount];
 
+	static public void updateHighlitSlots() {
+		ScheduleSlot[][] scheduleSlots = {
+				MainAct.sInstance.mScheduleLayout.mHourSlots,
+				MainAct.sInstance.mScheduleLayout.mProgramSlots };
+
+		for (ScheduleSlot[] slots : scheduleSlots) {
+			for (ScheduleSlot slot : slots) {
+				if (Config.mSelectedId != -1
+						&& (slot.widget.userId == Config.mSelectedId)) {
+					slot.setSelected(true);
+				} else {
+					slot.setSelected(false);
+				}
+			}
+		}
+	}
+
 	public static ScheduleSlot getHitSlot(int x, int y, ScheduleSlot[] slots) {
 		ScheduleSlot hit = null;
 		for (int i = 0; i < slots.length; i++) {
@@ -88,10 +105,12 @@ class ScheduleLayout {
 				mEraseProgramSlot.widget.userId = -1;
 			}
 		}
-
+		
 		for (ScheduleSlot slot : mProgramSlots) {
 			slot.widget.view.bringToFront();
 		}
+		
+		updateHighlitSlots();
 
 		MainAct.sInstance.mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
 	}

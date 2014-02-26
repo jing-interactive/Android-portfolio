@@ -22,8 +22,16 @@ class AnimLayout {
 	AnimSlot mCurrentAnimSlot;
 	AnimConfig mCurrentAnimConfig;
 
+	// TODO: replace fields with HashMap<String, View>
 	TextView mLoopCountView;
 	Widget mSliderButton;
+
+	View mMovieText, mInteractionText;
+
+	View mRandomOn, mRandomOff;
+	View mEnabledOn, mEnabledOff;
+
+	View mLoopPlus, mLoopMinus;
 
 	private View[] mEnableFlagViews = new View[AnimSlot.kCount];
 
@@ -42,7 +50,6 @@ class AnimLayout {
 		for (int i = 0; i < mConfigs.length; i++) {
 			mConfigs[i] = new Config();
 		}
-
 	}
 
 	public void loadConfig(SharedPreferences settings) {
@@ -57,8 +64,8 @@ class AnimLayout {
 		}
 	}
 
-	int mSliderStartX;
-	int mSliderEndX;
+	int mSliderStartX = 40;
+	int mSliderEndX = 40 + 610;
 
 	float mOffsetX;
 
@@ -81,11 +88,58 @@ class AnimLayout {
 			final int idOn = MainAct.sInstance
 					.getDrawableByString(name + "_on");
 
-			if (name.equals("lighting_gradual")) {
-				mSliderStartX = widget.xmlRect.left;
-				mSliderEndX = widget.xmlRect.right;
+			// RANDOM ON / OFF
+			if (name.equals("random_on")) {
+				mRandomOn = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, R.drawable.on_on, R.drawable.on_on,
+						null);
+				mRandomOn.setOnTouchListener(null);
+				mRandomOn.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						if (!mCurrentAnimConfig.isRandom) {
+							setIsRandom(true);
+						}
+					}
+				});
+			} else if (name.equals("random_off")) {
+				mRandomOff = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, R.drawable.off_on,
+						R.drawable.off_off, null);
+				mRandomOff.setOnTouchListener(null);
+				mRandomOff.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						if (mCurrentAnimConfig.isRandom) {
+							setIsRandom(false);
+						}
+					}
+				});
 			}
-			if (name.equals("lighting_triangle")) {
+			// MOVIE ON / OFF
+			else if (name.equals("movie_on")) {
+				mEnabledOn = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, R.drawable.on_on, R.drawable.on_on,
+						null);
+				mEnabledOn.setOnTouchListener(null);
+				mEnabledOn.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						if (!mCurrentAnimConfig.isEnabled) {
+							setIsEnabled(true);
+						}
+					}
+				});
+			} else if (name.equals("movie_off")) {
+				mEnabledOff = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, R.drawable.off_on,
+						R.drawable.off_off, null);
+				mEnabledOff.setOnTouchListener(null);
+				mEnabledOff.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						if (mCurrentAnimConfig.isEnabled) {
+							setIsEnabled(false);
+						}
+					}
+				});
+			} else if (name.equals("lighting_triangle")) {
 				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
 						widget.xmlRect.top - 75, R.drawable.light_slider,
 						R.drawable.light_slider, null);
@@ -110,9 +164,11 @@ class AnimLayout {
 						return false;
 					}
 				});
-			} else if (name.contains(kAnimSlotPrefix)) {
-				final int slot = Integer.parseInt(name.substring(
-						kAnimSlotPrefix.length(), name.length())) - 1;
+			} else if (name.contains(kAnimSlotPrefix)
+					|| name.equals("interaction_fade")) {
+				final int slot = name.equals("interaction_fade") ? AnimSlot.kKinectSlot
+						: Integer.parseInt(name.substring(
+								kAnimSlotPrefix.length(), name.length())) - 1;
 				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
 						widget.xmlRect.top, idOn, widget.xmlResId,
 						new View.OnClickListener() {
@@ -166,6 +222,7 @@ class AnimLayout {
 								setLoopCount(Math.min(loopCount + 1, 10));
 							}
 						});
+				mLoopPlus = widget.view;
 			} else if (name.equals("loop_minus")) {
 				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
 						widget.xmlRect.top, idOn, widget.xmlResId,
@@ -177,6 +234,7 @@ class AnimLayout {
 								setLoopCount(Math.max(loopCount - 1, 1));
 							}
 						});
+				mLoopMinus = widget.view;
 			} else if (name.equals("loop_no1")) {
 				mLoopCountView = new TextView(MainAct.sInstance);
 				// mLoopCountView.setTextSize(mLoopCountView.getTextSize() *
@@ -190,11 +248,18 @@ class AnimLayout {
 				widget.view = MainAct.sInstance.addImage(widget.xmlRect,
 						widget.xmlResId);
 
-				if (name.contains(kAnimEnablePrefix)) {
-					final int slot = Integer.parseInt(name.substring(
-							kAnimEnablePrefix.length(), name.length())) - 1;
+				if (name.contains(kAnimEnablePrefix)
+						|| name.equals("interaction_on")) {
+					final int slot = name.equals("interaction_on") ? AnimSlot.kKinectSlot
+							: Integer.parseInt(name.substring(
+									kAnimEnablePrefix.length(), name.length())) - 1;
 					mEnableFlagViews[slot] = widget.view;
 					widget.view.setVisibility(View.INVISIBLE);
+				} else if (name.equals("movie")) {
+					mMovieText = widget.view;
+				} else if (name.equals("interaction")) {
+					mInteractionText = widget.view;
+					mInteractionText.setVisibility(View.INVISIBLE);
 				}
 			}
 		}
@@ -207,8 +272,18 @@ class AnimLayout {
 					.getTag(R.id.TAG_RES_ON);
 			mCurrentAnimSlot.widget.view.setBackgroundResource(idOn.intValue());
 		}
+
+		{
+			for (int i = 0; i < AnimSlot.kCount; i++) {
+				mEnableFlagViews[i]
+						.setVisibility(mCurrentConfig.animConfigs[i].isEnabled ? View.VISIBLE
+								: View.INVISIBLE);
+
+			}
+		}
 	}
 
+	// TODO: pop up YES_NO dialog box
 	void onReset() {
 		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
 		mCurrentConfig.animConfigs[currentAnimIdx] = new AnimConfig();
@@ -216,8 +291,16 @@ class AnimLayout {
 		onUpdate();
 	}
 
+	// TODO: detect OSC feedback
 	void onUpdate() {
 		mCurrentConfig.sendOscMsg(Config.mSelectedId);
+	}
+
+	void showLoopGroup(boolean visible) {
+		int vis = visible ? View.VISIBLE : View.INVISIBLE;
+		mLoopCountView.setVisibility(vis);
+		mLoopPlus.setVisibility(vis);
+		mLoopMinus.setVisibility(vis);
 	}
 
 	void setLoopCount(int loopCount) {
@@ -229,20 +312,47 @@ class AnimLayout {
 		mCurrentAnimConfig.lightValue = ratio;
 		mSliderButton.view.setX(ratio * (mSliderEndX - mSliderStartX)
 				+ mSliderStartX);
+		// TODO: send real-time slider value??
 		// mCurrentConfig.sendOscMsg(Config.mSelectedId);
 	}
 
-	void setEnabled(boolean flag) {
+	void setIsEnabled(boolean flag) {
 		mCurrentAnimConfig.isEnabled = flag;
+		mEnabledOn.setBackgroundResource(flag ? R.drawable.on_on
+				: R.drawable.on_off);
+		mEnabledOff.setBackgroundResource(flag ? R.drawable.off_off
+				: R.drawable.off_on);
+		mEnabledOn.bringToFront();
+		mEnabledOff.bringToFront();
+
 		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
 		mEnableFlagViews[currentAnimIdx].setVisibility(flag ? View.VISIBLE
 				: View.INVISIBLE);
 	}
 
+	void setIsRandom(boolean flag) {
+		mCurrentAnimConfig.isRandom = flag;
+		mRandomOn.setBackgroundResource(flag ? R.drawable.on_on
+				: R.drawable.on_off);
+		mRandomOff.setBackgroundResource(flag ? R.drawable.off_off
+				: R.drawable.off_on);
+		mRandomOn.bringToFront();
+		mRandomOff.bringToFront();
+	}
+
 	void updateLayoutFromConfig() {
 		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
+		if (currentAnimIdx == AnimSlot.kKinectSlot) {
+			mInteractionText.setVisibility(View.VISIBLE);
+			mMovieText.setVisibility(View.INVISIBLE);
+		} else {
+			mMovieText.setVisibility(View.VISIBLE);
+			mInteractionText.setVisibility(View.INVISIBLE);
+		}
 		mCurrentAnimConfig = mCurrentConfig.animConfigs[currentAnimIdx];
 		setLoopCount(mCurrentAnimConfig.loopCount);
 		setSlider(mCurrentAnimConfig.lightValue);
+		setIsRandom(mCurrentAnimConfig.isRandom);
+		setIsEnabled(mCurrentAnimConfig.isEnabled);
 	}
 }

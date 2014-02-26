@@ -3,7 +3,8 @@ package com.vnm.G9;
 import android.view.View;
 
 class AnimSlot {
-	final static int kCount = 10;
+	static final int kCount = 11;
+	static final int kKinectSlot = kCount - 1;
 	static public String kConfigKey = "kAnimConfig";
 	
 	static int mSelectedId = -1;

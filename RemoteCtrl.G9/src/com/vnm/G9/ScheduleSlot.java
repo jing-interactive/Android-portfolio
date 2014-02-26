@@ -62,26 +62,8 @@ class ScheduleSlot {
 							MainAct.sInstance.mProgrammeSceneBtn
 									.setVisibility(View.INVISIBLE);
 						}
-						for (ScheduleSlot slot : MainAct.sInstance.mScheduleLayout.mHourSlots) {
-							if (widget.userId != -1
-									&& (slot.widget.userId == widget.userId)) {
-								slot.setSelected(true);
-							} else {
-								slot.setSelected(false);
-							}
-						}
 
-						// TODO: combine them
-						for (ScheduleSlot slot : MainAct.sInstance.mScheduleLayout.mProgramSlots) {
-							if (widget.userId != -1
-									&& (slot.widget.userId == widget.userId)) {
-								slot.setSelected(true);
-							} else {
-								slot.setSelected(false);
-							}
-						}
-
-						// TODO: highlight
+						ScheduleLayout.updateHighlitSlots();
 					}
 					return true;
 				}
@@ -96,7 +78,6 @@ class ScheduleSlot {
 				}
 				return true;
 			}
-
 		});
 	}
 
