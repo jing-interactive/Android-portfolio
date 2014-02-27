@@ -4,10 +4,11 @@ import java.util.ArrayList;
 
 import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AbsoluteLayout;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 class AnimLayout {
@@ -140,9 +141,8 @@ class AnimLayout {
 					}
 				});
 			} else if (name.equals("lighting_triangle")) {
-				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
-						widget.xmlRect.top - 75, R.drawable.light_slider,
-						R.drawable.light_slider, null);
+				widget.view = MainAct.sInstance.addImage(widget.xmlRect.left,
+						widget.xmlRect.top - 74, R.drawable.light_slider);
 				mSliderButton = widget;
 				widget.view.bringToFront();
 				widget.view.setOnTouchListener(new View.OnTouchListener() {
@@ -175,6 +175,8 @@ class AnimLayout {
 
 							public void onClick(View v) {
 								mCurrentAnimSlot = mAnimSlots[slot];
+
+								// turn off all the anim slots
 								for (int i = 0; i < mAnimSlots.length; i++) {
 									Integer resOff = (Integer) mAnimSlots[i].widget.view
 											.getTag(R.id.TAG_RES_OFF);
@@ -182,8 +184,11 @@ class AnimLayout {
 											.setBackgroundResource(resOff
 													.intValue());
 								}
-								updateLayoutFromConfig();
+
+								// turn on current one
 								v.setBackgroundResource(idOn);
+
+								updateLayoutFromConfig();
 							}
 						});
 				widget.view.setTag(R.id.TAG_RES_ON, Integer.valueOf(idOn));
@@ -219,7 +224,7 @@ class AnimLayout {
 								int loopCount = Integer
 										.valueOf((String) mLoopCountView
 												.getText());
-								setLoopCount(Math.min(loopCount + 1, 10));
+								setLoopCount(Math.min(loopCount + 1, 9));
 							}
 						});
 				mLoopPlus = widget.view;
@@ -237,11 +242,17 @@ class AnimLayout {
 				mLoopMinus = widget.view;
 			} else if (name.equals("loop_no1")) {
 				mLoopCountView = new TextView(MainAct.sInstance);
-				// mLoopCountView.setTextSize(mLoopCountView.getTextSize() *
-				// 1.5);
+				// http://stackoverflow.com/questions/6506762/where-should-i-put-the-ttf-files-in-an-android-project
+				Typeface tf = Typeface.createFromAsset(
+						MainAct.sInstance.getAssets(),
+						"fonts/Franklin Gothic Medium.ttf");
+				mLoopCountView.setTypeface(tf);
+				mLoopCountView.setTextSize((float) (mLoopCountView
+						.getTextSize() * 1.5));
 				Rect rc = widget.xmlRect;
 				mLoopCountView.setLayoutParams(new AbsoluteLayout.LayoutParams(
-						rc.width() * 2, rc.height(), rc.left, rc.top));
+						rc.width() * 4, rc.height() * 2, rc.left - 3,
+						rc.top - 18));
 
 				MainAct.sInstance.mMainLayout.addView(mLoopCountView);
 			} else {
@@ -266,7 +277,6 @@ class AnimLayout {
 
 		{
 			mCurrentAnimSlot = mAnimSlots[0];
-
 			updateLayoutFromConfig();
 			Integer idOn = (Integer) mCurrentAnimSlot.widget.view
 					.getTag(R.id.TAG_RES_ON);
@@ -310,8 +320,10 @@ class AnimLayout {
 
 	void setSlider(float ratio) {
 		mCurrentAnimConfig.lightValue = ratio;
-		mSliderButton.view.setX(ratio * (mSliderEndX - mSliderStartX)
-				+ mSliderStartX);
+		float x = ratio * (mSliderEndX - mSliderStartX) + mSliderStartX;
+		// mSliderButton.view.setX(x);
+		mSliderButton.view.setLayoutParams(new AbsoluteLayout.LayoutParams(48,
+				97, (int) x, mSliderButton.xmlRect.top - 74));
 		// TODO: send real-time slider value??
 		// mCurrentConfig.sendOscMsg(Config.mSelectedId);
 	}
