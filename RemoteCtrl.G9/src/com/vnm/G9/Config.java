@@ -31,11 +31,9 @@ class AnimConfig {
 	}
 
 	public void processOscMsg(OscMessage m) {
-		m.add(isEnabled ? 1 : 0); // oscpack doesn't support bool args
-		m.add(isRandom ? 1 : 0);
-		m.add(loopCount);
+		m.add(isEnabled ? loopCount : 0);
 		m.add(lightValue);
-		m.add(lightValue2);
+		m.add(isRandom? lightValue2 : 0);
 	}
 }
 
