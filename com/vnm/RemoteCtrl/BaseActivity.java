@@ -55,10 +55,6 @@ public abstract class BaseActivity extends Activity {
 		return "Mobile Control. Copyright：V & M Interactive (2013 - 2014)";
 	}
 
-	protected int getClientCount() {
-		return 1;
-	}
-
 	// 当计算机ip地址发生改变时调用
 	protected void onRemoteIpChanged(int idx) {
 		// TODO Auto-generated method stub
@@ -121,9 +117,19 @@ public abstract class BaseActivity extends Activity {
 
 	String STORE_NAME = "Settings";
 
+	protected int getClientCount() {
+		return 1;
+	}
+
 	public String mRemoteIps[];
-	final int kRemotePort = 3333;
-	final int kListenPort = 4444;
+
+	public int getRemotePort() {
+		return 3333;
+	}
+
+	public int getListenPort() {
+		return 4444;
+	}
 
 	final int kIdeaW = 1280;
 	final int kIdeaH = 752;
@@ -183,7 +189,7 @@ public abstract class BaseActivity extends Activity {
 		OscMessage m = new OscMessage(addr);
 		m.add(value);
 		for (String ip : mRemoteIps)
-			mOscServer.send(m, ip, kRemotePort);
+			mOscServer.send(m, ip, getRemotePort());
 	}
 
 	public void removeView(View view) {
@@ -549,7 +555,16 @@ public abstract class BaseActivity extends Activity {
 		super.onCreateOptionsMenu(menu);
 
 		for (int i = 0; i < getClientCount(); i++)
-			menu.add("设置" + (i + 1));
+		{
+			if (i == 0)
+			{
+				menu.add("设置 ip 地址");
+			}
+			else
+			{
+				menu.add("设置" + (i + 1));
+			}
+		}
 		menu.add("关于");
 		return true;
 	}
@@ -661,7 +676,7 @@ public abstract class BaseActivity extends Activity {
 					+ i);
 		MsgBox("远程IP为 " + mRemoteIps[0] + ",可在选项菜单中修改", true);
 
-		mOscServer = new OscP5(this, kListenPort);
+		mOscServer = new OscP5(this, getListenPort());
 		mOscServer.addListener(new OscEventListener() {
 
 			public void oscEvent(OscMessage m) {
@@ -673,7 +688,7 @@ public abstract class BaseActivity extends Activity {
 					block = 1;
 				} else if (m.checkAddress("/activate")) {
 					block = 0;
-				} else if (m.checkAddress("/msgBox")){
+				} else if (m.checkAddress("/msgBox")) {
 					MsgBox(m.get(0).stringValue(), false);
 				}
 

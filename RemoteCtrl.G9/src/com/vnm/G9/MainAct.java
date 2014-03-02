@@ -24,10 +24,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		static final int kPreview = 2;
 	}
 
-	protected int getClientCount() {
-		return 1;
-	}
-
 	public void setLayout(int layoutId) {
 		if (mCurrentLayout == layoutId)
 			return;
@@ -140,6 +136,10 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 	public AnimLayout mAnimLayout = new AnimLayout();
 
 	ArrayList<Widget> mPreviewWidgets;
+
+	public int getRemotePort() {
+		return 4444;
+	}
 
 	public final static int kLedPort = 4444;
 	public final static String kConfigName = "CONFIG";

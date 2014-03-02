@@ -82,6 +82,23 @@ class ScheduleLayout {
 		}
 	}
 
+	void setWorldVisible(boolean flag) {
+		mIsWorldVisible = flag;
+		if (mIsWorldVisible) {
+			mDarkLayer.setVisibility(View.INVISIBLE);
+
+			mWorldBtn.setBackgroundResource(R.drawable.world);
+			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
+		} else {
+			mDarkLayer.bringToFront();
+			mDarkLayer.setVisibility(View.VISIBLE);
+
+			mWorldBtn.setBackgroundResource(R.drawable.world_on);
+			mWorldBtn.bringToFront();
+			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
+		}
+	}
+
 	public void createLayout() {
 
 		if (mWidgets == null) {
@@ -119,28 +136,15 @@ class ScheduleLayout {
 			} else if (name.equals("world")) {
 				MainAct.sInstance.removeView(widget.view);
 
-				if (true) // FIXME
-				{
-					continue;
-				}
 				mWorldBtn = MainAct.sInstance.addButton(widget.xmlRect.left,
 						widget.xmlRect.top, R.drawable.world_on,
 						R.drawable.world_on, null);
-				mIsWorldVisible = true;
 
 				MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
 
 				mWorldBtn.setOnClickListener(new View.OnClickListener() {
 					public void onClick(View v) {
-						mIsWorldVisible = !mIsWorldVisible;
-						if (mIsWorldVisible) {
-							v.setBackgroundResource(R.drawable.world_on);
-							MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
-						} else {
-							v.setBackgroundResource(R.drawable.world);
-							MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
-							// create dark layout
-						}
+						setWorldVisible(!mIsWorldVisible);
 					}
 				});
 			}
@@ -171,5 +175,15 @@ class ScheduleLayout {
 		}
 
 		MainAct.sInstance.mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
+
+		mDarkLayer = MainAct.sInstance.addImage(0, 0, R.drawable.bg);
+		mDarkLayer.setVisibility(View.INVISIBLE);
+		mDarkLayer.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				return true;
+			}
+		});
+
+		setWorldVisible(mIsWorldVisible);
 	}
 }

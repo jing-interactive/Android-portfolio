@@ -107,6 +107,7 @@ class ScheduleSlot {
 		m.add(mOscId);
 		m.add(widget.userId);
 		for (String ip : MainAct.sInstance.mRemoteIps)
-			MainAct.sInstance.mOscServer.send(m, ip, MainAct.kLedPort);
+			MainAct.sInstance.mOscServer.send(m, ip,
+					MainAct.sInstance.getRemotePort());
 	}
 }
