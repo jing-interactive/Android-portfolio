@@ -11,7 +11,7 @@ class AnimConfig {
 	
 	int loopCount = 1;// bigger than 1
 	float lightValue = 0.5f;
-	float lightValue2 = 0; // if non-zero, then random light value from
+	float lightValue2 = 0.8f; // if non-zero, then random light value from
 							// (lightValue, lightValue2)
 
 	public void loadConfig(SharedPreferences settings, String nameOfKey) {

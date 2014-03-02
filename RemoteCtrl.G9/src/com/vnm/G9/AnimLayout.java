@@ -26,6 +26,7 @@ class AnimLayout {
 	// TODO: replace fields with HashMap<String, View>
 	TextView mLoopCountView;
 	Widget mSliderButton;
+	View mSliderButton2;
 
 	View mMovieText, mInteractionText;
 
@@ -65,10 +66,11 @@ class AnimLayout {
 		}
 	}
 
-	int mSliderStartX = 40;
-	int mSliderEndX = 40 + 610;
+	final int kHalfSliderTriangle = 20;
+	final int kSliderStartX = 39 - kHalfSliderTriangle;
+	final int kSliderEndX = kSliderStartX + 608;
 
-	float mOffsetX;
+	float mOffsetX, mOffsetX2;
 
 	public void createLayout() {
 
@@ -150,12 +152,14 @@ class AnimLayout {
 						int x = (int) event.getRawX();
 						switch (event.getActionMasked()) {
 						case MotionEvent.ACTION_DOWN: {
-							mOffsetX = mSliderButton.xmlRect.left - x;
+							mOffsetX = mSliderButton.view.getX() - x;
+							return true;
 						}
 						case MotionEvent.ACTION_MOVE: {
-							if (x >= mSliderStartX && x <= mSliderEndX) {
-								setSlider((x - mSliderStartX)
-										/ (float) (mSliderEndX - mSliderStartX));
+							float newX = x + mOffsetX;
+							if (newX >= kSliderStartX && newX <= kSliderEndX) {
+								setSlider((newX - kSliderStartX)
+										/ (float) (kSliderEndX - kSliderStartX));
 							}
 							return true;
 						}
@@ -275,6 +279,29 @@ class AnimLayout {
 			}
 		}
 
+		mSliderButton2 = MainAct.sInstance.addImage(mSliderButton.xmlRect.left,
+				mSliderButton.xmlRect.top - 74, R.drawable.light_slider2);
+		mSliderButton2.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				int x = (int) event.getRawX();
+				switch (event.getActionMasked()) {
+				case MotionEvent.ACTION_DOWN: {
+					mOffsetX2 = mSliderButton2.getX() - x;
+				}
+				case MotionEvent.ACTION_MOVE: {
+					float newX = x + mOffsetX2;
+					if (newX >= kSliderStartX && newX <= kSliderEndX) {
+						setSlider2((newX - kSliderStartX)
+								/ (float) (kSliderEndX - kSliderStartX));
+					}
+					return true;
+				}
+				}
+
+				return false;
+			}
+		});
+
 		{
 			mCurrentAnimSlot = mAnimSlots[0];
 			updateLayoutFromConfig();
@@ -320,36 +347,52 @@ class AnimLayout {
 
 	void setSlider(float ratio) {
 		mCurrentAnimConfig.lightValue = ratio;
-		float x = ratio * (mSliderEndX - mSliderStartX) + mSliderStartX;
-		// mSliderButton.view.setX(x);
+		float x = ratio * (kSliderEndX - kSliderStartX) + kSliderStartX;
 		mSliderButton.view.setLayoutParams(new AbsoluteLayout.LayoutParams(48,
 				97, (int) x, mSliderButton.xmlRect.top - 74));
 		// TODO: send real-time slider value??
 		// mCurrentConfig.sendOscMsg(Config.mSelectedId);
 	}
 
-	void setIsEnabled(boolean flag) {
-		mCurrentAnimConfig.isEnabled = flag;
-		mEnabledOn.setBackgroundResource(flag ? R.drawable.on_on
+	void setSlider2(float ratio) {
+		mCurrentAnimConfig.lightValue2 = ratio;
+		float x = ratio * (kSliderEndX - kSliderStartX) + kSliderStartX;
+		mSliderButton2.setLayoutParams(new AbsoluteLayout.LayoutParams(48, 97,
+				(int) x, mSliderButton.xmlRect.top - 74));
+		// TODO: send real-time slider value??
+		// mCurrentConfig.sendOscMsg(Config.mSelectedId);
+	}
+
+	void setIsEnabled(boolean isEnabled) {
+		mCurrentAnimConfig.isEnabled = isEnabled;
+		mEnabledOn.setBackgroundResource(isEnabled ? R.drawable.on_on
 				: R.drawable.on_off);
-		mEnabledOff.setBackgroundResource(flag ? R.drawable.off_off
+		mEnabledOff.setBackgroundResource(isEnabled ? R.drawable.off_off
 				: R.drawable.off_on);
 		mEnabledOn.bringToFront();
 		mEnabledOff.bringToFront();
 
 		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
-		mEnableFlagViews[currentAnimIdx].setVisibility(flag ? View.VISIBLE
+		mEnableFlagViews[currentAnimIdx].setVisibility(isEnabled ? View.VISIBLE
 				: View.INVISIBLE);
 	}
 
-	void setIsRandom(boolean flag) {
-		mCurrentAnimConfig.isRandom = flag;
-		mRandomOn.setBackgroundResource(flag ? R.drawable.on_on
+	void setIsRandom(boolean isRandom) {
+		mCurrentAnimConfig.isRandom = isRandom;
+		mRandomOn.setBackgroundResource(isRandom ? R.drawable.on_on
 				: R.drawable.on_off);
-		mRandomOff.setBackgroundResource(flag ? R.drawable.off_off
+		mRandomOff.setBackgroundResource(isRandom ? R.drawable.off_off
 				: R.drawable.off_on);
 		mRandomOn.bringToFront();
 		mRandomOff.bringToFront();
+
+		if (isRandom) {
+			setSlider2(mCurrentAnimConfig.lightValue2);
+			mSliderButton2.bringToFront();
+			mSliderButton2.setVisibility(View.VISIBLE);
+		} else {
+			mSliderButton2.setVisibility(View.INVISIBLE);
+		}
 	}
 
 	void updateLayoutFromConfig() {

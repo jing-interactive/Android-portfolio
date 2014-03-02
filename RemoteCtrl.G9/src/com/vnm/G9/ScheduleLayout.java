@@ -2,7 +2,10 @@ package com.vnm.G9;
 
 import java.util.ArrayList;
 
+import oscP5.OscMessage;
+
 import android.content.SharedPreferences;
+import android.view.MotionEvent;
 import android.view.View;
 
 class ScheduleLayout {
@@ -13,6 +16,10 @@ class ScheduleLayout {
 	ScheduleSlot[] mProgramSlots = new ScheduleSlot[Config.kCount];
 	ScheduleSlot mEraseProgramSlot;
 	final String kProgramSlotPrefix = "color_button";
+
+	View mWorldBtn;
+	View mDarkLayer;
+	boolean mIsWorldVisible = true;
 
 	// HourSlot
 	public ScheduleSlot[] mHourSlots = new ScheduleSlot[ScheduleSlot.kCount];
@@ -32,6 +39,12 @@ class ScheduleLayout {
 				}
 			}
 		}
+
+		MainAct.sInstance.mProgrammeSceneBtn
+				.setBackgroundResource(R.drawable.programme_off);
+		MainAct.sInstance.mProgrammeSceneBtn
+				.setVisibility(Config.mSelectedId == -1 ? View.INVISIBLE
+						: View.VISIBLE);
 	}
 
 	public static ScheduleSlot getHitSlot(int x, int y, ScheduleSlot[] slots) {
@@ -62,13 +75,20 @@ class ScheduleLayout {
 		}
 	}
 
+	// TODO: detect OSC feedback
+	void onUpdate() {
+		for (ScheduleSlot slot : mHourSlots) {
+			slot.sendOscMsg();
+		}
+	}
+
 	public void createLayout() {
 
 		if (mWidgets == null) {
 			mWidgets = new ArrayList<Widget>();
 			mWidgets = Widget.parseXML("SCHEDULE.xml");
 		}
-		
+
 		for (Widget widget : mWidgets) {
 
 			String name = widget.name;
@@ -84,8 +104,48 @@ class ScheduleLayout {
 				MainAct.LOGE(widget.name);
 			}
 
+			final int idOn = MainAct.sInstance
+					.getDrawableByString(name + "_on");
+
+			if (name.equals("update")) {
+				MainAct.sInstance.removeView(widget.view);
+				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, idOn, widget.xmlResId,
+						new View.OnClickListener() {
+							public void onClick(View v) {
+								onUpdate();
+							}
+						});
+			} else if (name.equals("world")) {
+				MainAct.sInstance.removeView(widget.view);
+
+				if (true) // FIXME
+				{
+					continue;
+				}
+				mWorldBtn = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, R.drawable.world_on,
+						R.drawable.world_on, null);
+				mIsWorldVisible = true;
+
+				MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
+
+				mWorldBtn.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						mIsWorldVisible = !mIsWorldVisible;
+						if (mIsWorldVisible) {
+							v.setBackgroundResource(R.drawable.world_on);
+							MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
+						} else {
+							v.setBackgroundResource(R.drawable.world);
+							MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
+							// create dark layout
+						}
+					}
+				});
+			}
 			// create two types of slots
-			if (name.contains(kHourSlotPrefix)) {
+			else if (name.contains(kHourSlotPrefix)) {
 				int slot = Integer.parseInt(name.substring(
 						kHourSlotPrefix.length(), name.length()));
 				// fade_color_1 -> hour: 10
@@ -105,12 +165,10 @@ class ScheduleLayout {
 				mEraseProgramSlot.widget.userId = -1;
 			}
 		}
-		
+
 		for (ScheduleSlot slot : mProgramSlots) {
 			slot.widget.view.bringToFront();
 		}
-		
-		updateHighlitSlots();
 
 		MainAct.sInstance.mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
 	}

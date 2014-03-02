@@ -40,10 +40,15 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		switch (layoutId) {
 		case LayoutID.kSchedule: {
 			mScheduleLayout.createLayout();
+			mScheduleSceneBtn.setBackgroundResource(R.drawable.schedule_on);
+			mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
 			break;
 		}
 		case LayoutID.kAnim: {
 			mAnimLayout.createLayout();
+			mScheduleSceneBtn.setBackgroundResource(R.drawable.schedule_off);
+			mProgrammeSceneBtn.setBackgroundResource(R.drawable.programme_on);
+			mProgrammeSceneBtn.setVisibility(View.VISIBLE);
 			break;
 		}
 
@@ -53,53 +58,43 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 		mMainLayout.setBackgroundResource(R.drawable.bg);
 
-		// setButtonPair(mScheduleBtn, mScheduleSceneBtn, LayoutID.kSchedule,
-		// mProgrammeBtn, mProgrammeSceneBtn, LayoutID.kProgramme);
-
-		// mScheduleSceneBtn.setVisibility(View.INVISIBLE);
-		// mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
-
-		// switch (layoutId) {
-		// case LayoutID.kSchedule: {
-		// mScheduleSceneBtn.setVisibility(View.INVISIBLE);
-		// break;
-		// }
-		// case LayoutID.kProgramme: {
-		// mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
-		// break;
-		// }
-		// }
-
 		loadConfig();
+
+		if (mCurrentLayout == LayoutID.kSchedule) {
+			ScheduleLayout.updateHighlitSlots();
+		}
 	}
 
 	public boolean applyTopButtons(Widget widget, String name) {
-		// if (name.equals("schedule")) {
-		// mScheduleBtn = widget.view;
-		// } else if (name.equals("programme")) {
-		// mProgrammeBtn = widget.view;
-		// }
-		if (name.equals("schedule_off")) {
-			mScheduleSceneBtn = widget.view = addToggleButton("", -1, -1,
-					widget.xmlRect.left, widget.xmlRect.top,
-					R.drawable.schedule_off, R.drawable.schedule_on,
-					new View.OnClickListener() {
-						public void onClick(View v) {
-							saveConfig();
-							setLayout(LayoutID.kSchedule);
-						}
-					});
+		if (name.equals("schedule")) {
+			mScheduleSceneBtn = addButton(widget.xmlRect.left,
+					widget.xmlRect.top, R.drawable.schedule_off,
+					R.drawable.schedule_on, null);
+			mScheduleSceneBtn.setOnTouchListener(null);
+			mScheduleSceneBtn.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					if (mCurrentLayout != LayoutID.kSchedule) {
+						v.setBackgroundResource(R.drawable.schedule_on);
+						saveConfig();
+						setLayout(LayoutID.kSchedule);
+					}
+				}
+			});
 			return true;
-		} else if (name.equals("programme_off")) {
-			mProgrammeSceneBtn = widget.view = addToggleButton("", -1, -1,
-					widget.xmlRect.left, widget.xmlRect.top,
-					R.drawable.programme_off, R.drawable.programme_on,
-					new View.OnClickListener() {
-						public void onClick(View v) {
-							saveConfig();
-							setLayout(LayoutID.kAnim);
-						}
-					});
+		} else if (name.equals("programme")) {
+			mProgrammeSceneBtn = addButton(widget.xmlRect.left,
+					widget.xmlRect.top, R.drawable.programme_off,
+					R.drawable.programme_on, null);
+			mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
+			mProgrammeSceneBtn.setOnTouchListener(null);
+			mProgrammeSceneBtn.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					if (mCurrentLayout != LayoutID.kAnim) {
+						saveConfig();
+						setLayout(LayoutID.kAnim);
+					}
+				}
+			});
 			return true;
 		}
 

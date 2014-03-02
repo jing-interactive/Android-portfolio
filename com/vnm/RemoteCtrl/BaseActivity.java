@@ -186,7 +186,7 @@ public abstract class BaseActivity extends Activity {
 			mOscServer.send(m, ip, kRemotePort);
 	}
 
-	protected void removeView(View view) {
+	public void removeView(View view) {
 		mMainLayout.removeView(view);
 	}
 
@@ -295,8 +295,8 @@ public abstract class BaseActivity extends Activity {
 					if (bonus_listener != null)
 						bonus_listener.onClick(v);
 				default:
-//					if (!v.isSelected())
-//						v.setBackgroundResource(img);
+					// if (!v.isSelected())
+					// v.setBackgroundResource(img);
 					break;
 				}
 				return false;
@@ -673,6 +673,8 @@ public abstract class BaseActivity extends Activity {
 					block = 1;
 				} else if (m.checkAddress("/activate")) {
 					block = 0;
+				} else if (m.checkAddress("/msgBox")){
+					MsgBox(m.get(0).stringValue(), false);
 				}
 
 				if (block == 1) {

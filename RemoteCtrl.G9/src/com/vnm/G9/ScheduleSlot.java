@@ -87,31 +87,26 @@ class ScheduleSlot {
 		id = Math.min(id, Config.kCount - 1);
 
 		widget.userId = id;
-		isSelected = true;
 		setSelected(false);
-
-		{
-			OscMessage m = new OscMessage("/schedule");
-			m.add(mOscId);
-			m.add(id);
-			for (String ip : MainAct.sInstance.mRemoteIps)
-				MainAct.sInstance.mOscServer.send(m, ip,
-						MainAct.sInstance.kLedPort);
-		}
 	}
 
 	public void setSelected(boolean selected) {
-		if (isSelected != selected) {
-			isSelected = selected;
-			int clr = kProgrammeColors[widget.userId + 1]; // HACK: -1 = ?
-			if (!selected) {
-				clr = (150 << 24) | (clr & 0x00ffffff);
-			}
-			widget.view.setImageDrawable(new ColorDrawable(clr));
+		int clr = kProgrammeColors[widget.userId + 1]; // HACK: -1 = ?
+		if (!selected) {
+			clr = (150 << 24) | (clr & 0x00ffffff);
 		}
+		widget.view.setImageDrawable(new ColorDrawable(clr));
 	}
 
 	boolean isSelected;
 	boolean isMoving; // user is moving the slot
 	Widget widget;
+
+	public void sendOscMsg() {
+		OscMessage m = new OscMessage("/schedule");
+		m.add(mOscId);
+		m.add(widget.userId);
+		for (String ip : MainAct.sInstance.mRemoteIps)
+			MainAct.sInstance.mOscServer.send(m, ip, MainAct.kLedPort);
+	}
 }
