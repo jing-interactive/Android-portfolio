@@ -17,9 +17,8 @@ class ScheduleLayout {
 	ScheduleSlot mEraseProgramSlot;
 	final String kProgramSlotPrefix = "color_button";
 
-	View mWorldBtn;
-	View mDarkLayer;
-	boolean mIsWorldVisible = true;
+	View mWorldOn, mWorldOff;
+	boolean mIsWorldOn = true;
 
 	// HourSlot
 	public ScheduleSlot[] mHourSlots = new ScheduleSlot[ScheduleSlot.kCount];
@@ -80,21 +79,25 @@ class ScheduleLayout {
 		for (ScheduleSlot slot : mHourSlots) {
 			slot.sendOscMsg();
 		}
+		MainAct.sInstance.sendCmd("/ACK", 0);
 	}
 
-	void setWorldVisible(boolean flag) {
-		mIsWorldVisible = flag;
-		if (mIsWorldVisible) {
-			mDarkLayer.setVisibility(View.INVISIBLE);
+	void setIsWorldOn(boolean flag) {
+		mIsWorldOn = flag;
+		if (mIsWorldOn) {
+			MainAct.sInstance.showDarkLayer(false);
+			mWorldOn.setBackgroundResource(R.drawable.world_on_on);
+			mWorldOff.setBackgroundResource(R.drawable.world_off_off);
 
-			mWorldBtn.setBackgroundResource(R.drawable.world);
 			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
 		} else {
-			mDarkLayer.bringToFront();
-			mDarkLayer.setVisibility(View.VISIBLE);
+			MainAct.sInstance.showDarkLayer(true);
 
-			mWorldBtn.setBackgroundResource(R.drawable.world_on);
-			mWorldBtn.bringToFront();
+			mWorldOn.setBackgroundResource(R.drawable.world_on_off);
+			mWorldOff.setBackgroundResource(R.drawable.world_off_on);
+
+			mWorldOn.bringToFront();
+
 			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
 		}
 	}
@@ -133,18 +136,29 @@ class ScheduleLayout {
 								onUpdate();
 							}
 						});
-			} else if (name.equals("world")) {
-				MainAct.sInstance.removeView(widget.view);
-
-				mWorldBtn = MainAct.sInstance.addButton(widget.xmlRect.left,
-						widget.xmlRect.top, R.drawable.world_on,
-						R.drawable.world_on, null);
-
-				MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
-
-				mWorldBtn.setOnClickListener(new View.OnClickListener() {
+			} else // RANDOM ON / OFF
+			if (name.equals("world_on_on")) {
+				mWorldOn = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, R.drawable.world_on_on,
+						R.drawable.world_on_on, null);
+				mWorldOn.setOnTouchListener(null);
+				mWorldOn.setOnClickListener(new View.OnClickListener() {
 					public void onClick(View v) {
-						setWorldVisible(!mIsWorldVisible);
+						if (!mIsWorldOn) {
+							setIsWorldOn(true);
+						}
+					}
+				});
+			} else if (name.equals("world_off_off")) {
+				mWorldOff = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, R.drawable.world_off_off,
+						R.drawable.world_off_off, null);
+				mWorldOff.setOnTouchListener(null);
+				mWorldOff.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						if (mIsWorldOn) {
+							setIsWorldOn(false);
+						}
 					}
 				});
 			}
@@ -176,14 +190,6 @@ class ScheduleLayout {
 
 		MainAct.sInstance.mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
 
-		mDarkLayer = MainAct.sInstance.addImage(0, 0, R.drawable.bg);
-		mDarkLayer.setVisibility(View.INVISIBLE);
-		mDarkLayer.setOnTouchListener(new View.OnTouchListener() {
-			public boolean onTouch(View v, MotionEvent event) {
-				return true;
-			}
-		});
-
-		setWorldVisible(mIsWorldVisible);
+		setIsWorldOn(mIsWorldOn);
 	}
 }

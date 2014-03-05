@@ -554,16 +554,8 @@ public abstract class BaseActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
-		for (int i = 0; i < getClientCount(); i++)
-		{
-			if (i == 0)
-			{
-				menu.add("设置 ip 地址");
-			}
-			else
-			{
-				menu.add("设置" + (i + 1));
-			}
+		for (int i = 0; i < getClientCount(); i++) {
+			menu.add("设置" + (i + 1));
 		}
 		menu.add("关于");
 		return true;

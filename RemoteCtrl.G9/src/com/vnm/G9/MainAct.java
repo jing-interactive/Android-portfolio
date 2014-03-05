@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsoluteLayout;
 import android.widget.ImageView;
@@ -13,6 +14,9 @@ import android.widget.ImageView;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class MainAct extends RemoteCtrl.BaseActivity {
 	static MainAct sInstance;
+
+	View mDarkLayer;
+	View mUpdateSucess, mUpdateFail;
 
 	protected String getAppAboutMe() {
 		return "G9 Mobile Control.";
@@ -52,12 +56,64 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 			break;
 		}
 
+		mDarkLayer = addImage(0, 0, R.drawable.dark_black);
+		mDarkLayer.setVisibility(View.INVISIBLE);
+		mDarkLayer.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				return true;
+			}
+		});
+
+		mUpdateSucess = addImage(336, 315, R.drawable.update_successfully);
+		mUpdateSucess.setVisibility(View.INVISIBLE);
+		mUpdateSucess.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				showDarkLayer(false);
+				return true;
+			}
+		});
+
+		mUpdateFail = addImage(336, 315, R.drawable.update__failed);
+		mUpdateFail.setVisibility(View.INVISIBLE);
+		mUpdateFail.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				showDarkLayer(false);
+				return true;
+			}
+		});
+
 		mMainLayout.setBackgroundResource(R.drawable.bg);
 
 		loadConfig();
 
 		if (mCurrentLayout == LayoutID.kSchedule) {
 			ScheduleLayout.updateHighlitSlots();
+		}
+	}
+
+	public void showUpdate(boolean success) {
+		showDarkLayer(true);
+		if (success) {
+			mUpdateSucess.bringToFront();
+			mUpdateSucess.setVisibility(View.VISIBLE);
+		} else {
+			mUpdateFail.bringToFront();
+			mUpdateFail.setVisibility(View.VISIBLE);
+		}
+	}
+
+	public void showDarkLayer(boolean visible) {
+		if (mDarkLayer == null) {
+			return;
+		}
+
+		if (visible) {
+			mDarkLayer.setVisibility(View.VISIBLE);
+			mDarkLayer.bringToFront();
+		} else {
+			mDarkLayer.setVisibility(View.INVISIBLE);
+			mUpdateSucess.setVisibility(View.INVISIBLE);
+			mUpdateFail.setVisibility(View.INVISIBLE);
 		}
 	}
 
@@ -139,6 +195,10 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 	public int getRemotePort() {
 		return 4444;
+	}
+
+	public int getListenPort() {
+		return 5555;
 	}
 
 	public final static int kLedPort = 4444;
