@@ -23,6 +23,8 @@ class AnimLayout {
 	AnimSlot mCurrentAnimSlot;
 	AnimConfig mCurrentAnimConfig;
 
+	View mResetYes, mResetNo, mResetTitle;
+
 	// TODO: replace fields with HashMap<String, View>
 	TextView mLoopCountView;
 	Widget mSliderButton;
@@ -209,7 +211,7 @@ class AnimLayout {
 						widget.xmlRect.top, idOn, widget.xmlResId,
 						new View.OnClickListener() {
 							public void onClick(View v) {
-								onReset();
+								showResetDialog(true);
 							}
 						});
 			} else if (name.equals("update")) {
@@ -302,6 +304,30 @@ class AnimLayout {
 			}
 		});
 
+		mResetTitle = MainAct.sInstance.addImage(465, 299,
+				R.drawable.reset_confirm);
+		mResetTitle.setVisibility(View.INVISIBLE);
+
+		mResetYes = MainAct.sInstance
+				.addImage(465, 416, R.drawable.confirm_yes);
+		mResetYes.setVisibility(View.INVISIBLE);
+		mResetYes.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				onReset();
+				showResetDialog(false);
+				return true;
+			}
+		});
+
+		mResetNo = MainAct.sInstance.addImage(684, 416, R.drawable.confirm_no);
+		mResetNo.setVisibility(View.INVISIBLE);
+		mResetNo.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				showResetDialog(false);
+				return true;
+			}
+		});
+
 		{
 			mCurrentAnimSlot = mAnimSlots[0];
 			updateLayoutFromConfig();
@@ -320,12 +346,23 @@ class AnimLayout {
 		}
 	}
 
+	void showResetDialog(boolean visible) {
+		MainAct.sInstance.showDarkLayer(visible);
+		int vis = visible ? View.VISIBLE : View.INVISIBLE;
+		mResetYes.setVisibility(vis);
+		mResetYes.bringToFront();
+		mResetNo.setVisibility(vis);
+		mResetNo.bringToFront();
+		mResetTitle.setVisibility(vis);
+		mResetTitle.bringToFront();
+	}
+
 	// TODO: pop up YES_NO dialog box
 	void onReset() {
 		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
 		mCurrentConfig.animConfigs[currentAnimIdx] = new AnimConfig();
 		updateLayoutFromConfig();
-		onUpdate();
+//		onUpdate();
 	}
 
 	// TODO: detect OSC feedback
