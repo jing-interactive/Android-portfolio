@@ -331,7 +331,7 @@ class AnimLayout {
 	// TODO: detect OSC feedback
 	void onUpdate() {
 		mCurrentConfig.sendOscMsg(Config.mSelectedId);
-		MainAct.sInstance.sendCmd("/ACK", 0);
+		MainAct.sInstance.sendAckMessage();
 	}
 
 	void showLoopGroup(boolean visible) {

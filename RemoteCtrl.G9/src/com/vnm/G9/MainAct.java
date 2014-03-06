@@ -9,6 +9,8 @@ import android.annotation.TargetApi;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsoluteLayout;
@@ -179,6 +181,28 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		editor.commit();
 	}
 
+	static final Handler mNewHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case R.drawable.update_successfully: {
+				MainAct.sInstance.showUpdate(true);
+				break;
+			}
+			case R.drawable.update__failed: {
+				MainAct.sInstance.showUpdate(false);
+				break;
+			}
+			}
+		}
+	};
+
+	public void sendAckMessage() {
+		sendCmd("/ACK", 0);
+		final int kTimeOutMs = 1000;
+		mNewHandler.sendEmptyMessageDelayed(R.drawable.update__failed,
+				kTimeOutMs);
+	}
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -196,7 +220,9 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 			public void oscEvent(OscMessage m) {
 				LOGI(" addr: " + m.addrPattern());
 				if (m.checkAddrPattern("/msgBox")) {
-					showUpdate(true);
+					mNewHandler.removeMessages(R.drawable.update__failed);
+					mNewHandler
+							.sendEmptyMessage(R.drawable.update_successfully);
 				}
 			}
 

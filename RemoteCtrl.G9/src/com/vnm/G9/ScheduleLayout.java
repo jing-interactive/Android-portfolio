@@ -79,7 +79,7 @@ class ScheduleLayout {
 		for (ScheduleSlot slot : mHourSlots) {
 			slot.sendOscMsg();
 		}
-		MainAct.sInstance.sendCmd("/ACK", 0);
+		MainAct.sInstance.sendAckMessage();
 	}
 
 	void setIsWorldOn(boolean flag) {
