@@ -1,6 +1,10 @@
 package com.vnm.G9;
 
 import java.util.ArrayList;
+
+import oscP5.OscEventListener;
+import oscP5.OscMessage;
+import oscP5.OscStatus;
 import android.annotation.TargetApi;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -186,6 +190,19 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 		mPreviewWidgets = Widget.parseXML("PREVIEW.xml");
 
 		setLayout(LayoutID.kSchedule);
+
+		mOscServer.addListener(new OscEventListener() {
+
+			public void oscEvent(OscMessage m) {
+				LOGI(" addr: " + m.addrPattern());
+				if (m.checkAddrPattern("/msgBox")) {
+					showUpdate(true);
+				}
+			}
+
+			public void oscStatus(OscStatus theStatus) {
+			}
+		});
 	}
 
 	public ScheduleLayout mScheduleLayout = new ScheduleLayout();

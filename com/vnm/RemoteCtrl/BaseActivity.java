@@ -7,6 +7,7 @@ import java.util.Map;
 import oscP5.OscEventListener;
 import oscP5.OscMessage;
 import oscP5.OscP5;
+import oscP5.OscStatus;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -672,15 +673,15 @@ public abstract class BaseActivity extends Activity {
 		mOscServer.addListener(new OscEventListener() {
 
 			public void oscEvent(OscMessage m) {
-				LOGI(" addr: " + m.getAddress());
+				LOGI(" addr: " + m.addrPattern());
 				int block = -1;
-				if (m.checkAddress("/block")) {
+				if (m.checkAddrPattern("/block")) {
 					block = m.get(0).intValue();
-				} else if (m.checkAddress("/deactivate")) {
+				} else if (m.checkAddrPattern("/deactivate")) {
 					block = 1;
-				} else if (m.checkAddress("/activate")) {
+				} else if (m.checkAddrPattern("/activate")) {
 					block = 0;
-				} else if (m.checkAddress("/msgBox")) {
+				} else if (m.checkAddrPattern("/msgBox")) {
 					MsgBox(m.get(0).stringValue(), false);
 				}
 
@@ -698,6 +699,11 @@ public abstract class BaseActivity extends Activity {
 					// send the message NOW
 					default_handler.sendEmptyMessage(MSG_UNBLOCK);
 				}
+			}
+
+			public void oscStatus(OscStatus theStatus) {
+				// TODO Auto-generated method stub
+				
 			}
 		});
 	}
