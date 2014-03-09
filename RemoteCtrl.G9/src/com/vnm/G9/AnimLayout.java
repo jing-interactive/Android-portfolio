@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AbsoluteLayout;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 class AnimLayout {
 	static final String kAnimSlotPrefix = "mov_";
@@ -24,6 +25,9 @@ class AnimLayout {
 	AnimConfig mCurrentAnimConfig;
 
 	View mResetYes, mResetNo, mResetTitle;
+
+	View mPreviewOff;
+	VideoView mVideoView;
 
 	// TODO: replace fields with HashMap<String, View>
 	TextView mLoopCountView;
@@ -204,8 +208,28 @@ class AnimLayout {
 				mAnimSlots[slot] = new AnimSlot(widget);
 				mAnimSlots[slot].widget.userId = slot;
 			} else if (name.equals("preview")) {
+				mVideoView = new VideoView(MainAct.sInstance);
+				MainAct.sInstance.mMainLayout.addView(mVideoView);
+				mVideoView.setLayoutParams(new AbsoluteLayout.LayoutParams(
+						1200, 500, 40, 185));
+
+				mPreviewOff = MainAct.sInstance.addImage(1158, 39,
+						R.drawable.off_button);
+				mPreviewOff.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						showPreview(false);
+					}
+				});
+				
+				showPreview(false);
+
 				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
 						widget.xmlRect.top, idOn, widget.xmlResId, null);
+				widget.view.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						showPreview(true);
+					}
+				});
 			} else if (name.equals("reset")) {
 				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
 						widget.xmlRect.top, idOn, widget.xmlResId,
@@ -344,6 +368,23 @@ class AnimLayout {
 
 			}
 		}
+	}
+
+	void showPreview(boolean visible) {
+		MainAct.sInstance.showDarkLayer(visible);
+		int vis = visible ? View.VISIBLE : View.GONE;
+
+		if (visible) {
+			mVideoView.bringToFront();
+			mPreviewOff.bringToFront();
+			mVideoView.setVideoPath("/sdcard/G9/ani_wall01.mp4"); // TODO:
+			mVideoView.start();
+		} else {
+			mVideoView.stopPlayback();
+		}
+
+		mVideoView.setVisibility(vis);
+		mPreviewOff.setVisibility(vis);
 	}
 
 	void showResetDialog(boolean visible) {

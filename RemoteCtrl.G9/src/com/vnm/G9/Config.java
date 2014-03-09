@@ -8,18 +8,19 @@ class AnimConfig {
 
 	boolean isEnabled = true;
 	boolean isRandom = false;
-	
+
 	int loopCount = 1;// bigger than 1
 	float lightValue = 0.5f;
 	float lightValue2 = 0.8f; // if non-zero, then random light value from
-							// (lightValue, lightValue2)
+								// (lightValue, lightValue2)
 
 	public void loadConfig(SharedPreferences settings, String nameOfKey) {
 		isEnabled = settings.getBoolean(nameOfKey + "/isEnabled", isEnabled);
 		isRandom = settings.getBoolean(nameOfKey + "/isRandom", isRandom);
 		loopCount = settings.getInt(nameOfKey + "/loopCount", loopCount);
 		lightValue = settings.getFloat(nameOfKey + "/lightValue", lightValue);
-		lightValue2 = settings.getFloat(nameOfKey + "/lightValue2", lightValue2);
+		lightValue2 = settings
+				.getFloat(nameOfKey + "/lightValue2", lightValue2);
 	}
 
 	public void saveConfig(SharedPreferences.Editor editor, String nameOfKey) {
@@ -33,7 +34,7 @@ class AnimConfig {
 	public void processOscMsg(OscMessage m) {
 		m.add(isEnabled ? loopCount : 0);
 		m.add(lightValue);
-		m.add(isRandom? lightValue2 : 0);
+		m.add(isRandom ? lightValue2 : 0);
 	}
 }
 
@@ -43,7 +44,7 @@ class Config {
 
 	public boolean isKinectEnabled = false;
 	AnimConfig[] animConfigs = new AnimConfig[AnimConfig.kCount];
-	
+
 	public Config() {
 		for (int i = 0; i < AnimConfig.kCount; i++) {
 			animConfigs[i] = new AnimConfig();
