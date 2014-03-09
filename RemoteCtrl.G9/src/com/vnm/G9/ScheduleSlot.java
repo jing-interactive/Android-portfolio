@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AbsoluteLayout;
+import android.widget.ImageView;
 
 class ScheduleSlot {
 	static int kCount = 16;
@@ -17,52 +19,78 @@ class ScheduleSlot {
 			Color.rgb(123, 13, 247), Color.rgb(63, 13, 247),
 			Color.rgb(3, 115, 253), };
 
+	ImageView mBonusLayer;
+	int mDeleteCount = 0;
+
 	public ScheduleSlot(Widget aWidget, int oscId) {
 		widget = aWidget;
 		mOscId = oscId;
+
+		mBonusLayer = MainAct.sInstance.addImage(aWidget.xmlRect, 0);
+		mBonusLayer.setVisibility(View.INVISIBLE);
 
 		widget.view.setOnTouchListener(new View.OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent event) {
 				int x = (int) event.getRawX();
 				int y = (int) event.getRawY();
 
+				ScheduleSlot hitHourSlot = ScheduleLayout.getHitSlot(x, y,
+						MainAct.sInstance.mScheduleLayout.mHourSlots);
+
 				switch (event.getActionMasked()) {
 				case MotionEvent.ACTION_DOWN: {
-					isMoving = true;
+
+					if (mDeleteCount == 3) {
+						setUserId(-1);
+					} else if (mDeleteCount == 2) {
+						mBonusLayer
+								.setBackgroundResource(R.drawable.color_delete);
+					}
+
+					for (ScheduleSlot slot : MainAct.sInstance.mScheduleLayout.mHourSlots) {
+						if (slot.mOscId != mOscId) {
+							slot.mDeleteCount = 0;
+						}
+					}
+
+					if (hitHourSlot != null && hitHourSlot.mOscId == mOscId) {
+						mDeleteCount++;
+					}
+
+					isMoving = widget.userId != -1;
 					widget.view.bringToFront();
+					mBonusLayer.bringToFront();
 
 					mOffsetx = widget.xmlRect.left - x;
 					mOffsety = widget.xmlRect.top - y;
+
+					// this value is visible to all the three layouts
+					Config.mSelectedId = widget.userId;
+
+					if (widget.userId != -1) {
+						MainAct.sInstance.mProgrammeSceneBtn
+								.setVisibility(View.VISIBLE);
+					} else {
+						MainAct.sInstance.mProgrammeSceneBtn
+								.setVisibility(View.INVISIBLE);
+					}
+
+					ScheduleLayout.updateHighlitSlots();
 
 					return true;
 				}
 				case MotionEvent.ACTION_UP: {
 					if (isMoving) {
+						isMoving = false;
+
 						widget.view.setX(widget.xmlRect.left);
 						widget.view.setY(widget.xmlRect.top);
+						mBonusLayer.setX(widget.view.getX());
+						mBonusLayer.setY(widget.view.getY());
 
-						ScheduleSlot hitHourSlot = ScheduleLayout
-								.getHitSlot(
-										x,
-										y,
-										MainAct.sInstance.mScheduleLayout.mHourSlots);
 						if (hitHourSlot != null) {
 							hitHourSlot.setUserId(widget.userId);
 						}
-
-						isMoving = false;
-
-						// this value is visible to all the three layouts
-						Config.mSelectedId = widget.userId;
-
-						if (widget.userId != -1) {
-							MainAct.sInstance.mProgrammeSceneBtn
-									.setVisibility(View.VISIBLE);
-						} else {
-							MainAct.sInstance.mProgrammeSceneBtn
-									.setVisibility(View.INVISIBLE);
-						}
-
 						ScheduleLayout.updateHighlitSlots();
 					}
 					return true;
@@ -71,6 +99,8 @@ class ScheduleSlot {
 					if (isMoving) {
 						widget.view.setX(mOffsetx + x);
 						widget.view.setY(mOffsety + y);
+						mBonusLayer.setX(widget.view.getX());
+						mBonusLayer.setY(widget.view.getY());
 					}
 
 					return true;
@@ -81,7 +111,6 @@ class ScheduleSlot {
 		});
 	}
 
-	// TODO: kProgrammeColors -> userIds?
 	public void setUserId(int id) {
 		id = Math.max(id, -1);
 		id = Math.min(id, Config.kCount - 1);
@@ -92,8 +121,15 @@ class ScheduleSlot {
 
 	public void setSelected(boolean selected) {
 		int clr = kProgrammeColors[widget.userId + 1]; // HACK: -1 = ?
-		if (!selected) {
-			clr = (150 << 24) | (clr & 0x00ffffff);
+		isSelected = selected;
+		if (isSelected) {
+			mBonusLayer.setVisibility(View.VISIBLE);
+			mBonusLayer
+					.setBackgroundResource(mDeleteCount == 3 ? R.drawable.color_delete
+							: R.drawable.color_select);
+			mBonusLayer.bringToFront();
+		} else {
+			mBonusLayer.setVisibility(View.INVISIBLE);
 		}
 		widget.view.setImageDrawable(new ColorDrawable(clr));
 	}

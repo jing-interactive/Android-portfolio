@@ -28,6 +28,10 @@ class ScheduleLayout {
 				MainAct.sInstance.mScheduleLayout.mHourSlots,
 				MainAct.sInstance.mScheduleLayout.mProgramSlots };
 
+		for (ScheduleSlot slot : MainAct.sInstance.mScheduleLayout.mProgramSlots) {
+			slot.mDeleteCount = 0;
+		}
+
 		for (ScheduleSlot[] slots : scheduleSlots) {
 			for (ScheduleSlot slot : slots) {
 				if (Config.mSelectedId != -1
@@ -35,6 +39,7 @@ class ScheduleLayout {
 					slot.setSelected(true);
 				} else {
 					slot.setSelected(false);
+					slot.mDeleteCount = 0;
 				}
 			}
 		}

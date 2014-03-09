@@ -362,7 +362,7 @@ class AnimLayout {
 		int currentAnimIdx = mCurrentAnimSlot.widget.userId;
 		mCurrentConfig.animConfigs[currentAnimIdx] = new AnimConfig();
 		updateLayoutFromConfig();
-//		onUpdate();
+		// onUpdate();
 	}
 
 	// TODO: detect OSC feedback
