@@ -33,8 +33,13 @@ class AnimConfig {
 
 	public void processOscMsg(OscMessage m) {
 		m.add(isEnabled ? loopCount : 0);
-		m.add(lightValue);
-		m.add(isRandom ? lightValue2 : 0);
+		if (isRandom) {
+			m.add(Math.min(lightValue, lightValue2));
+			m.add(Math.max(lightValue, lightValue2));
+		} else {
+			m.add(lightValue);
+			m.add(0);
+		}
 	}
 }
 
