@@ -17,8 +17,8 @@ class ScheduleLayout {
 	ScheduleSlot mEraseProgramSlot;
 	final String kProgramSlotPrefix = "color_button";
 
-	View mWorldOn, mWorldOff;
-	boolean mIsWorldOn = true;
+	View mWorldOn, mWorldOff, mWorldAuto;
+	int mWorldStatus = 0; // 0, 1, 2
 
 	// HourSlot
 	public ScheduleSlot[] mHourSlots = new ScheduleSlot[ScheduleSlot.kCount];
@@ -87,24 +87,35 @@ class ScheduleLayout {
 		MainAct.sInstance.sendAckMessage();
 	}
 
-	void setIsWorldOn(boolean flag) {
-		mIsWorldOn = flag;
-		if (mIsWorldOn) {
+	void setWorldStatus(int flag) {
+		mWorldStatus = flag;
+		if (mWorldStatus == 0) {
 			MainAct.sInstance.showDarkLayer(false);
 			mWorldOn.setBackgroundResource(R.drawable.world_on_on);
 			mWorldOff.setBackgroundResource(R.drawable.world_off_off);
+			mWorldAuto.setBackgroundResource(R.drawable.world_auto_off);
 
 			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
-		} else {
+		} else if (mWorldStatus == 1) {
 			MainAct.sInstance.showDarkLayer(true);
 
 			mWorldOn.setBackgroundResource(R.drawable.world_on_off);
 			mWorldOff.setBackgroundResource(R.drawable.world_off_on);
-
-			mWorldOn.bringToFront();
+			mWorldAuto.setBackgroundResource(R.drawable.world_auto_off);
 
 			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
+		} else {
+			MainAct.sInstance.showDarkLayer(true);
+
+			mWorldOn.setBackgroundResource(R.drawable.world_on_off);
+			mWorldOff.setBackgroundResource(R.drawable.world_off_off);
+			mWorldAuto.setBackgroundResource(R.drawable.world_auto_on);
+
+			MainAct.sInstance.sendCmd("/WORLD_AUTO", 1);
 		}
+		mWorldOn.bringToFront();
+		mWorldOff.bringToFront();
+		mWorldAuto.bringToFront();
 	}
 
 	public void createLayout() {
@@ -149,8 +160,8 @@ class ScheduleLayout {
 				mWorldOn.setOnTouchListener(null);
 				mWorldOn.setOnClickListener(new View.OnClickListener() {
 					public void onClick(View v) {
-						if (!mIsWorldOn) {
-							setIsWorldOn(true);
+						if (mWorldStatus != 0) {
+							setWorldStatus(0);
 						}
 					}
 				});
@@ -161,8 +172,20 @@ class ScheduleLayout {
 				mWorldOff.setOnTouchListener(null);
 				mWorldOff.setOnClickListener(new View.OnClickListener() {
 					public void onClick(View v) {
-						if (mIsWorldOn) {
-							setIsWorldOn(false);
+						if (mWorldStatus != 1) {
+							setWorldStatus(1);
+						}
+					}
+				});
+			} else if (name.equals("world_auto_off")) {
+				mWorldAuto = MainAct.sInstance.addButton(widget.xmlRect.left,
+						widget.xmlRect.top, R.drawable.world_auto_off,
+						R.drawable.world_auto_off, null);
+				mWorldAuto.setOnTouchListener(null);
+				mWorldAuto.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						if (mWorldStatus != 2) {
+							setWorldStatus(2);
 						}
 					}
 				});
@@ -195,6 +218,6 @@ class ScheduleLayout {
 
 		MainAct.sInstance.mProgrammeSceneBtn.setVisibility(View.INVISIBLE);
 
-		setIsWorldOn(mIsWorldOn);
+		setWorldStatus(mWorldStatus);
 	}
 }
