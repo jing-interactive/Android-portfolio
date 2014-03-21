@@ -38,7 +38,7 @@ class AnimConfig {
 			m.add(Math.max(lightValue, lightValue2));
 		} else {
 			m.add(lightValue);
-			m.add(0);
+			m.add(0.0f);
 		}
 	}
 }

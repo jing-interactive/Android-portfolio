@@ -95,7 +95,7 @@ class ScheduleLayout {
 			mWorldOff.setBackgroundResource(R.drawable.world_off_off);
 			mWorldAuto.setBackgroundResource(R.drawable.world_auto_off);
 
-			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
+			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
 		} else if (mWorldStatus == 1) {
 			MainAct.sInstance.showDarkLayer(true);
 
@@ -103,7 +103,7 @@ class ScheduleLayout {
 			mWorldOff.setBackgroundResource(R.drawable.world_off_on);
 			mWorldAuto.setBackgroundResource(R.drawable.world_auto_off);
 
-			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
+			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
 		} else {
 			MainAct.sInstance.showDarkLayer(true);
 
@@ -111,7 +111,7 @@ class ScheduleLayout {
 			mWorldOff.setBackgroundResource(R.drawable.world_off_off);
 			mWorldAuto.setBackgroundResource(R.drawable.world_auto_on);
 
-			MainAct.sInstance.sendCmd("/WORLD_AUTO", 1);
+			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 2);
 		}
 		mWorldOn.bringToFront();
 		mWorldOff.bringToFront();

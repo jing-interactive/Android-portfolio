@@ -31,7 +31,6 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 	class LayoutID {
 		static final int kSchedule = 0;
 		static final int kAnim = 1;
-		static final int kPreview = 2;
 	}
 
 	public void setLayout(int layoutId) {

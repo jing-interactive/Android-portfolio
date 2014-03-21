@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AbsoluteLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -16,7 +17,7 @@ class AnimLayout {
 	static final String kAnimSlotPrefix = "mov_";
 	static final String kAnimEnablePrefix = "move_on_";
 	Config[] mConfigs = new Config[Config.kCount];
-	Config mCurrentConfig;
+	Config mCurrentConfig; // One Config has 10 AnimConfigs
 
 	public ArrayList<Widget> mWidgets;
 
@@ -27,7 +28,7 @@ class AnimLayout {
 	View mResetYes, mResetNo, mResetTitle;
 
 	View mPreviewOff;
-	VideoView mVideoView;
+	ImageView mImageView;
 
 	// TODO: replace fields with HashMap<String, View>
 	TextView mLoopCountView;
@@ -208,10 +209,8 @@ class AnimLayout {
 				mAnimSlots[slot] = new AnimSlot(widget);
 				mAnimSlots[slot].widget.userId = slot;
 			} else if (name.equals("preview")) {
-				mVideoView = new VideoView(MainAct.sInstance);
-				MainAct.sInstance.mMainLayout.addView(mVideoView);
-				mVideoView.setLayoutParams(new AbsoluteLayout.LayoutParams(
-						1200, 500, 40, 185));
+				mImageView = MainAct.sInstance.addImage(new Rect(40, 245,
+						40 + 1200, 245 + 400), 0);
 
 				mPreviewOff = MainAct.sInstance.addImage(1158, 39,
 						R.drawable.off_button);
@@ -220,7 +219,7 @@ class AnimLayout {
 						showPreview(false);
 					}
 				});
-				
+
 				showPreview(false);
 
 				widget.view = MainAct.sInstance.addButton(widget.xmlRect.left,
@@ -375,15 +374,14 @@ class AnimLayout {
 		int vis = visible ? View.VISIBLE : View.GONE;
 
 		if (visible) {
-			mVideoView.bringToFront();
+			mImageView.setBackgroundResource(MainAct.sInstance
+					.getDrawableByString("preview0"
+							+ (mCurrentAnimSlot.widget.userId + 1)));
+			mImageView.bringToFront();
 			mPreviewOff.bringToFront();
-			mVideoView.setVideoPath("/sdcard/G9/ani_wall01.mp4"); // TODO:
-			mVideoView.start();
-		} else {
-			mVideoView.stopPlayback();
 		}
 
-		mVideoView.setVisibility(vis);
+		mImageView.setVisibility(vis);
 		mPreviewOff.setVisibility(vis);
 	}
 
