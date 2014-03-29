@@ -89,13 +89,13 @@ class ScheduleLayout {
 
 	void setWorldStatus(int flag) {
 		mWorldStatus = flag;
-		if (mWorldStatus == 0) {
-			MainAct.sInstance.showDarkLayer(false);
+		if (mWorldStatus == 2) {
+			MainAct.sInstance.showDarkLayer(true);
 			mWorldOn.setBackgroundResource(R.drawable.world_on_on);
 			mWorldOff.setBackgroundResource(R.drawable.world_off_off);
 			mWorldAuto.setBackgroundResource(R.drawable.world_auto_off);
 
-			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
+			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 2);
 		} else if (mWorldStatus == 1) {
 			MainAct.sInstance.showDarkLayer(true);
 
@@ -105,13 +105,13 @@ class ScheduleLayout {
 
 			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 1);
 		} else {
-			MainAct.sInstance.showDarkLayer(true);
+			MainAct.sInstance.showDarkLayer(false);
 
 			mWorldOn.setBackgroundResource(R.drawable.world_on_off);
 			mWorldOff.setBackgroundResource(R.drawable.world_off_off);
 			mWorldAuto.setBackgroundResource(R.drawable.world_auto_on);
 
-			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 2);
+			MainAct.sInstance.sendCmd("/WORLD_VISIBLE", 0);
 		}
 		mWorldOn.bringToFront();
 		mWorldOff.bringToFront();
@@ -160,8 +160,8 @@ class ScheduleLayout {
 				mWorldOn.setOnTouchListener(null);
 				mWorldOn.setOnClickListener(new View.OnClickListener() {
 					public void onClick(View v) {
-						if (mWorldStatus != 0) {
-							setWorldStatus(0);
+						if (mWorldStatus != 2) {
+							setWorldStatus(2);
 						}
 					}
 				});
@@ -184,8 +184,8 @@ class ScheduleLayout {
 				mWorldAuto.setOnTouchListener(null);
 				mWorldAuto.setOnClickListener(new View.OnClickListener() {
 					public void onClick(View v) {
-						if (mWorldStatus != 2) {
-							setWorldStatus(2);
+						if (mWorldStatus != 0) {
+							setWorldStatus(0);
 						}
 					}
 				});

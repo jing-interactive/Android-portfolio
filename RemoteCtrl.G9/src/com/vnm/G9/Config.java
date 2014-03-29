@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 class AnimConfig {
 	public static final int kCount = 11; // 0-9: normal, 10: kinect
 
-	boolean isEnabled = true;
+	boolean isEnabled = false;
 	boolean isRandom = false;
 
 	int loopCount = 1;// bigger than 1

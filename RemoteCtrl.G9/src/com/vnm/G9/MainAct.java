@@ -197,7 +197,7 @@ public class MainAct extends RemoteCtrl.BaseActivity {
 
 	public void sendAckMessage() {
 		sendCmd("/ACK", 0);
-		final int kTimeOutMs = 1000;
+		final int kTimeOutMs = 3000;
 		mNewHandler.sendEmptyMessageDelayed(R.drawable.update__failed,
 				kTimeOutMs);
 	}
